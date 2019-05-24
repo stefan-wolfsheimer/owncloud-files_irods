@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<info>
+  <id>files_irods</id>
+  <name>iRODS Storage and Meta Data Backend</name>
+  <description>
+    Copy and paste Owncloud folders to iRODS, edit meta data
+    and trigger publication workflows.
+  </description>
+  <licence>APACHE2</licence>
+  <author>Stefan Wolfsheimer</author>
+  <version>0.0.1</version>
+  <namespace>files_irods</namespace>
+  <category>tool</category>
+  <types>
+    <filesystem/>
+  </types>
+  <dependencies>
+    <owncloud min-version="9" max-version="10"/>
+  </dependencies>
+</info>
