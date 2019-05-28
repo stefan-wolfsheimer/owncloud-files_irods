@@ -1,6 +1,8 @@
 <?php
 
 namespace OCA\files_irods\AppInfo;
+use OCP\Util;
+
 $app = new Application();
 
 \OC::$server->getNavigationManager()->add(function ()
@@ -16,3 +18,11 @@ $app = new Application();
             'order' => 10,
         ];
 });
+
+\OC::$server->getEventDispatcher()->addListener(
+	'OCA\Files::loadAdditionalScripts',
+	function() {
+		Util::addScript('files_irods', 'irods_popup');
+	}
+);
+
