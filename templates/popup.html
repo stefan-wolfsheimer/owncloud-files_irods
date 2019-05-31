@@ -31,39 +31,45 @@
     </div>
 
     {{#each data.entries as |item|}}
-    <h3 class="irods-field-header">{{item.field}}</h3>
-    <ul class="irods-metadata-group" data-field="{{item.field}}">
       {{#if item.readonly}}
-        {{#each item.values as |value|}}
-          <li class="irods-metadata-entry">
-            <nobr>
-              {{value}}
-            </nobr>
-          </li>
-        {{/each}}
+        {{#if item.values }}
+          <h3 class="irods-field-header">{{item.field}}</h3>
+            <ul class="irods-metadata-group" data-field="{{item.field}}">
+              {{#each item.values as |value|}}
+                <li class="irods-metadata-entry">
+                  <nobr>
+                    {{value}}
+                  </nobr>
+                </li>
+              {{/each}}
+            </ul>
+        {{/if}} {{! values exists }}
       {{else}}
-        {{#each item.values as |value|}}
-           <li class="irods-metadata-entry">
-             <nobr>
-               <input class="irods-metadata-entry-value" data-field="{{item.field}}" type="text" value="{{value}}" style="width: 300px"/>
-               <button type="button" class="irods-metadata-remove">-</button>
-             </nobr>
-           </li>
-        {{else}}
-           {{! no values set yet }}
-           <li>
-             <nobr>
-               <input class="irods-metadata-entry-value {{#if item.warning }}irods-input-warning {{else if item.error}} irods-input-error {{/if}} "
-                      data-field="{{item.field}}" type="text" value="" style="width: 300px"/>
-             </nobr>
-           </li>
-        {{/each}}
-        {{! add metadata value }}
-        <li>
-          <button type="button" class="irods-metadata-add" data-field="{{item.field}}">+</button>
-        </li>
+        {{! not readonly }}
+        <h3 class="irods-field-header">{{item.field}}</h3>
+          <ul class="irods-metadata-group" data-field="{{item.field}}">
+            {{#each item.values as |value|}}
+              <li class="irods-metadata-entry">
+                <nobr>
+                  <input class="irods-metadata-entry-value" data-field="{{item.field}}" type="text" value="{{value}}" style="width: 300px"/>
+                  <button type="button" class="irods-metadata-remove">-</button>
+                </nobr>
+              </li>
+            {{else}}
+              {{! no values set yet }}
+              <li>
+                <nobr>
+                  <input class="irods-metadata-entry-value {{#if item.warning }}irods-input-warning {{else if item.error}} irods-input-error {{/if}} "
+                         data-field="{{item.field}}" type="text" value="" style="width: 300px"/>
+                </nobr>
+              </li>
+            {{/each}}
+            {{! add metadata value }}
+            <li>
+              <button type="button" class="irods-metadata-add" data-field="{{item.field}}">+</button>
+            </li>
+          </ul>
       {{/if}}
-    </ul>
     {{/each}}
     <ul>
       {{#if data.can_edit_meta_data }}

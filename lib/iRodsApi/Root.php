@@ -28,6 +28,11 @@ class Root extends Path
         return array_keys($this->subpaths);
     }
 
+    public function getChildCollectionMapping()
+    {
+        return $this->subpaths;
+    }
+
     public function filetype()
     {
         return "dir";

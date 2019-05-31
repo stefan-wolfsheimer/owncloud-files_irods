@@ -77,22 +77,12 @@ abstract class Path
 
     public function getMeta()
     {
-        try
+        $p = $this->getIrodsPath();
+        if($p === false)
         {
-            $p = $this->getIrodsPath();
-            if($p === false)
-            {
-                return false;
-            }
-            return $p->getMeta();
+            throw new \Exception("Could not resolve iRODS path");
         }
-        catch(Exception $ex)
-        {
-        }
-        finally
-        {
-        }
-        return false;
+        return $p->getMeta();
     }
 
     public function rmMeta(Array $names)

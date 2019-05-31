@@ -13,10 +13,15 @@ class MetaController extends Controller
         parent::__construct($AppName, $request);
         $this->profile = array(
             array(
+                'field'=>'IBRIDGES_STATE',
+                'type'=> 'str',
+                'mode'=> 'ro',
+                'required' => false),
+            array(
                 'field'=>'Identifier',
                 'type'=> 'str',
                 'mode'=> 'ro',
-                'required' => true),
+                'required' => false),
             array(
                 'field' => 'Title',
                 'type'=> 'str',
@@ -33,6 +38,14 @@ class MetaController extends Controller
                 'mode'=> 'rw'));
     }
 
+    /**
+     * removes first part of the path
+     * example: $path = /iRODS/path/to/my/file.txt
+     *          return path/to/my/file.txt
+     *
+     * @param string $path 
+     * @return string
+     */
     public function stripMountPoint($path)
     {
         $tmp = explode('/', ltrim($path, '/'), 2);
@@ -57,7 +70,9 @@ class MetaController extends Controller
             $irodsPath = $session->resolvePath($this->stripMountPoint($path));
             if($irodsPath)
             {
-                return $this->getMetaData($irodsPath, $session, "warning");
+                $data = $this->getMetaData($irodsPath, $session);
+                $data = $this->validate($data, "warning");
+                return $data;
             }
             else
             {
@@ -80,6 +95,7 @@ class MetaController extends Controller
      */
     public function put($path, $entries, $op)
     {
+        $data = array();
         try
         {
             $session = iRodsSession::createFromPath($path);
@@ -90,28 +106,32 @@ class MetaController extends Controller
             $irodsPath = $session->resolvePath($this->stripMountPoint($path));
             if($irodsPath)
             {
-                //@todo more efficient solution
-                //currently: save meta data and then validate
-                //future: first validate everything then save
-                $md = $this->mapMetaDataForUpdate($irodsPath, $entries);
-                if(!$this->update($irodsPath, $md))
-                {
-                    throw new \Exception("failed to update meta data");
-                }
-
+                $data = $this->getMetaDataFromRequest($irodsPath, $entries, $session, true);
                 if($op == "update")
                 {
-                    return $this->getMetaData($irodsPath, $session, "warning");
+                    $data = $this->validate($data, "warning");
                 }
                 else if($op == "submit")
                 {
-                    $md = $this->getMetaData($irodsPath, $session, "error");
-                    return $this->submit($irodsPath, $md);
+                    $data = $this->validate($data, "error");
                 }
                 else
                 {
                     throw new \Exception("invalid operation '$op'");
                 }
+                if(!$data['error'])
+                {
+                    $data = $this->update($irodsPath, $data);
+                    if(!$this->update($irodsPath, $data))
+                    {
+                        $data['error'] = 'failed to update MetaData';
+                    }
+                }
+                if($op == "submit" && !$data['error'])
+                {
+                    $data = $this->submit($irodsPath, $data);
+                }
+                return $data;
             }
             else
             {
@@ -120,12 +140,25 @@ class MetaController extends Controller
         }
         catch(\Exception $ex)
         {
-            return array("error" => "failed to update meta data: ".$ex->getMessage());
+            $data['error'] = "failed to update meta data: ".$ex->getMessage();
+            return $data;
         }
     }
 
-    public function update($irodsPath, $md)
+    public function update($irodsPath, $data)
     {
+        $md = [];
+        foreach($data['entries'] as $k=>$v)
+        {
+            if(!$v['readonly'])
+            {
+                $md[$k] = array();
+                foreach($v['values'] as $v)
+                {
+                    $md[$k][$v] = true;
+                }
+            }
+        }
         $ret = $irodsPath->rmMeta(array_keys($md));
         if($ret)
         {
@@ -137,7 +170,11 @@ class MetaController extends Controller
                 }
             }
         }
-        return $ret;
+        if(!$ret)
+        {
+            $data['error'] = 'failed to update MetaData';
+        }
+        return $data;
     }
 
     public function submit($irodsPath, $md)
@@ -157,87 +194,114 @@ class MetaController extends Controller
         return $md;
     }
 
-    private function getMetaData($irodsPath, $session, $error_escalation)
+    private function getMetaData($irodsPath, $session)
     {
         $entries = [];
         $state = "NEW";
-        $meta = $irodsPath->getMeta();
-        if($meta !== false)
+        $canEdit = $irodsPath->canEditMetaData();
+        $orderedEntries = [];
+        foreach($this->profile as $v)
         {
+            $v['values'] = [];
+            $v['readonly'] = ($v['mode'] == 'ro' || !$canEdit);
+            $entries[$v['field']] = $v;
+            $orderedEntries[] = $v['field'];
+        }
+        $meta = $irodsPath->getMeta();
+        foreach($meta as $alu)
+        {
+            if($alu->name == "IBRIDGES_STATE")
+            {
+                $state = $alu->value;
+            }
+            if(array_key_exists($alu->name, $entries))
+            {
+                $entries[$alu->name]['values'][] = $alu->value;
+            }
+        }
+        return array("path"=>$irodsPath->getPath(),
+                     "file"=>basename($irodsPath->getPath()),
+                     "can_edit_meta_data" => $irodsPath->canEditMetaData(),
+                     "can_submit" => $irodsPath->canSubmit(),
+                     "can_approve" => $irodsPath->canApprove(),
+                     "can_reject" => $irodsPath->canReject(),
+                     "fields" => $orderedEntries,
+                     "entries"=> $entries,
+                     "roles" => $session->getRoles(),
+                     "warning" => false,
+                     "error" => false,
+                     "state" => $state,
+                     "state_urls"=>$session->getUrlToFilteredCollections());
+    }
+
+    private function getMetaDataFromRequest($irodsPath, $input, $session, $loadMissing=true)
+    {
+        $entries = [];
+        $state = "NEW";
+        $canEdit = $irodsPath->canEditMetaData();
+        $orderedEntries = [];
+        $transformed = [];
+        foreach($this->profile as $v)
+        {
+            $v['values'] = [];
+            $v['readonly'] = ($v['mode'] == 'ro' || !$canEdit);
+            if(!$v['readonly'] && array_key_exists($v['field'], $input))
+            {
+                $v['values'] = $input[$v['field']];
+            }
+            else
+            {
+                $v['values'] = [];
+            }
+            $entries[$v['field']] = $v;
+            $orderedEntries[] = $v['field'];
+        }
+        if($loadMissing)
+        {
+            $meta = $irodsPath->getMeta();
             foreach($meta as $alu)
             {
                 if($alu->name == "IBRIDGES_STATE")
                 {
                     $state = $alu->value;
                 }
-                else
+                if(array_key_exists($alu->name, $entries) && $entries[$alu->name]['readonly'])
                 {
-                    $entries[$alu->name][] = $alu->value;
+                    $entries[$alu->name]['values'][] = $alu->value;
                 }
             }
-            $entries = $this->mapMetaData($irodsPath, $entries, $error_escalation);
-            $canEdit = $irodsPath->canEditMetaData();
-            return array("path"=>$irodsPath->getPath(),
-                         "file"=>basename($irodsPath->getPath()),
-                         "can_edit_meta_data" => $irodsPath->canEditMetaData(),
-                         "can_submit" => $irodsPath->canSubmit(),
-                         "can_approve" => $irodsPath->canApprove(),
-                         "can_reject" => $irodsPath->canReject(),
-                         "entries"=> $entries,
-                         "roles" => $session->getRoles(),
-                         "warning" => $this->getWarning($irodsPath, $state, $entries),
-                         "error" => $this->getError($irodsPath, $state, $entries),
-                         "state" => $state);
         }
-        else
-        {
-            throw new \Exception("failed to get metadata");
-        }
+        return array("path"=>$irodsPath->getPath(),
+                     "file"=>basename($irodsPath->getPath()),
+                     "can_edit_meta_data" => $irodsPath->canEditMetaData(),
+                     "can_submit" => $irodsPath->canSubmit(),
+                     "can_approve" => $irodsPath->canApprove(),
+                     "can_reject" => $irodsPath->canReject(),
+                     "fields" => $orderedEntries,
+                     "entries"=> $entries,
+                     "roles" => $session->getRoles(),
+                     "warning" => false,
+                     "error" => false,
+                     "state" => $state,
+                     "state_urls"=>$session->getUrlToFilteredCollections());
     }
 
-    private function getWarning($irodsPath, $state, $entries)
+    private function validate($data, $error_escalation)
     {
-        foreach($entries as $entry)
+        $err = false;
+        foreach($data['entries'] as $k => &$entry)
         {
-            if(array_key_exists("warning", $entry))
+            if($entry['required'] && $entry['mode'] == 'rw' && !$entry['readonly'] && !$entry['values'])
             {
-                return 'There are missing MetaData entries';
+                $entry[$error_escalation] = true;
+                $err = 'There are missing MetaData entries';
             }
         }
-        return false;
+        $data[$error_escalation] = $err;
+        return $data;
     }
 
-    private function getError($irodsPath, $state, $entries)
-    {
-        foreach($entries as $entry)
-        {
-            if(array_key_exists("error", $entry))
-            {
-                return 'There are missing MetaData entries';
-            }
-        }
-        return false;
-    }
 
-    private function mapMetaData($irodsPath, Array $entries, $error_escalation=false)
-    {
-        $ret = [];
-        $canEdit = $irodsPath->canEditMetaData();
-        foreach($this->profile as $v)
-        {
-            if(array_key_exists($v['field'], $entries))
-            {
-                $v['values'] = $entries[$v['field']];
-            }
-            if($error_escalation && $v['required'] && $v['mode'] == 'rw' && $canEdit && (!$v['values']))
-            {
-                $v[$error_escalation] = true;
-            }
-            $v['readonly'] = ($v['mode'] == 'ro' || !$canEdit);
-            $ret[] = $v;
-        }
-        return $ret;
-    }
 
     private function mapMetaDataForUpdate($irodsPath, Array $entries)
     {

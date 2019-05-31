@@ -124,11 +124,13 @@
        var templateVars = {
 	 closeLabel: t('files', 'Close'),
          name: data.file,
-         data: data
+         data: this.orderEntries(data)
        };
        if (!this._template) {
 	 this._template = Handlebars.compile(TEMPLATE);
        }
+       console.log('---------');
+       console.log(data);
        this.$el.html(this._template(templateVars));
        this.$el.find('.thumbnail').css('background-image', 'url("' + this.iconurl + '")');
        var self = this;
@@ -156,9 +158,22 @@
        });
 
        ['error', 'warning'].forEach(function(type) {
-         if(typeof data[type] != 'undefined' && data[type]) {
+         if(data[type] != undefined && data[type]) {
            self.displayError(type, data[type]);
          }});
+     },
+
+     orderEntries: function(data) {
+       var entries = {};
+       if(data['fields'] != undefined) {
+         data.fields.forEach(function(f) {
+           if(data.entries[f] != undefined) {
+             entries[f] = data.entries[f];
+           }
+         });
+         data.entries = entries;
+       }
+       return data;
      },
 
      _onClose: function(event) {
@@ -188,19 +203,22 @@
      },
 
      saveMetadata: function(event, op) {
-      var md = [];
-      $(".irods-metadata-entry-value").each(function(k, elem) {
-        var field = $(elem).attr('data-field');
-        var value = $(elem).val().trim();
-        if(value) {
-          md.push({"field": field,
-                   "value": value,
-                   "units": null});
-        }
-      });
-      var self = this;
-      var url = this.apiUrl;
-      $.ajax({
+       var md = {};
+       $(".irods-metadata-entry-value").each(function(k, elem) {
+         var field = $(elem).attr('data-field');
+         var value = $(elem).val().trim();
+         if(value) {
+           if(md[field] == undefined) {
+             md[field] = [value];
+           }
+           else {
+             md[field].push(value);
+           }
+         }
+       });
+       var self = this;
+       var url = this.apiUrl;
+       $.ajax({
           url: url,
           type: 'PUT',    
           data: {"entries": md,
@@ -210,25 +228,19 @@
             if(typeof data == "string") {
               data = JSON.parse(data);
             }
+            if(op == "submit" && !data.error && data.state == 'SUBMITTED') {
+              var url = OC.generateUrl('/apps/files/?dir=/' + data.state_urls['SUBMITTED']);
+              $(location).attr('href', url);
+            }
+            self.render(data);
             if(typeof data.error !== undefined && data.error) {
-              if(typeof data.entries !== undefined) {
-                self.render(data);
-              }
               self.displayError('error', data.error);
             }
+            else if(typeof data.warning !== undefined && data.warning) {
+              self.displayError('warning', data.warning);
+            }
             else {
-              self.render(data);
-              if(typeof data.warning !== undefined && data.warning) {
-                self.displayError('warning', data.warning);
-              }
-              else {
-                self.hideError();
-              }
-              if(op == "submit")
-              {
-                var url = OC.generateUrl('/apps/files/?dir=/iRODS/Submitted');
-                $(location).attr('href', url);
-              }
+              self.hideError();
             }
           },
           error: function(data) {

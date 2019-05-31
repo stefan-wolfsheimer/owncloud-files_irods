@@ -10,10 +10,12 @@ class iRodsSession
     public $params = null;
     private $root = null;
     private $roles = null;
+    private $storageMountPoint = null;
 
-    public function __construct($params)
+    public function __construct($params, $storageMountPoint = null)
     {
         $this->params = $params;
+        $this->storageMountPoint = $storageMountPoint;
         if(!array_key_exists("zone", $this->params))
         {
             $this->params["zone"] = "tempZone";
@@ -122,10 +124,9 @@ class iRodsSession
     {
         $storageMountPoint = explode('/', ltrim($path, '/'), 2)[0];
         $storages = \OC::$server->query('UserStoragesService');
-        $param = false;
+        $params = false;
         foreach($storages->getStorages() as $m)
         {
-            //@todo fitler by mount point
             if(ltrim($m->getMountPoint(), '/') == $storageMountPoint)
             {
                 $params = $m->getBackendOptions();
@@ -136,7 +137,7 @@ class iRodsSession
         {
             throw \Exception("cannot resolve path '$path'");
         }
-        return new IRodsSession($params);
+        return new IRodsSession($params, $storageMountPoint);
     }
 
     /**
@@ -168,6 +169,19 @@ class iRodsSession
         {
             \RODSConnManager::releaseConn($conn);
         }
+    }
+
+    public function getUrlToFilteredCollections()
+    {
+        $ret = array();
+        foreach($this->root->getChildCollectionMapping() as $k=>$coll)
+        {
+            if($coll instanceof FilteredCollection)
+            {
+                $ret[$coll->getState()] = $this->storageMountPoint."/".$k;
+            }
+        }
+        return $ret;
     }
 
     /**
