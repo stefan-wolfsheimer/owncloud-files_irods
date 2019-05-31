@@ -44,7 +44,20 @@ abstract class Path
 
     public function canEditMetaData()
     {
-        return false;
+        $roles = $this->session->getRoles();
+        if(array_key_exists("researcher", $roles) && $this->rootCollection)
+        {
+
+            if($this->rootCollection->getState() == "NEW" ||
+               $this->rootCollection->getState() == "REVISED")
+            {
+                return true;
+            }
+        }
+        else
+        {
+            return false;
+        }
     }
 
     public function canSubmit()
@@ -62,10 +75,106 @@ abstract class Path
         return false;
     }
 
+    public function getMeta()
+    {
+        try
+        {
+            $p = $this->getIrodsPath();
+            if($p === false)
+            {
+                return false;
+            }
+            return $p->getMeta();
+        }
+        catch(Exception $ex)
+        {
+        }
+        finally
+        {
+        }
+        return false;
+    }
+
+    public function rmMeta(Array $names)
+    {
+        $lu = [];
+        foreach($names as $k)
+        {
+            $lu[$k] = true;
+        }
+        try
+        {
+            $p = $this->getIrodsPath();
+            if($p === false)
+            {
+                return false;
+            }
+            $meta = $p->getMeta();
+            foreach($meta as $alu)
+            {
+                if(array_key_exists($alu->name, $lu))
+                {
+                    $p->rmMeta($alu);
+                }
+            }
+            return true;
+        }
+        catch(Exception $ex)
+        {
+        }
+        finally
+        {
+        }
+        return false;
+    }
+
+    public function addMeta($field, $value)
+    {
+        try
+        {
+            $p = $this->getIrodsPath();
+            if($p === false)
+            {
+                return false;
+            }
+            $p->addMeta(new \RODSMeta($field, $value));
+            return true;
+        }
+        catch(Exception $ex)
+        {
+        }
+        finally
+        {
+        }
+        return false;
+    }
+
+    public function setMeta($field, $value)
+    {
+        try
+        {
+            $p = $this->getIrodsPath();
+            if($p === false)
+            {
+                return false;
+            }
+            $p->addMeta(new \RODSMeta($field, $value));
+            return true;
+        }
+        catch(Exception $ex)
+        {
+        }
+        finally
+        {
+        }
+        return false;
+    }
+
     abstract public function stat();
     abstract public function getChildren();
     abstract public function filetype();
     abstract public function resolve($path, $root=null);
     abstract public function resolveCollection($path);
     abstract public function resolveFile($path);
+    abstract protected function getIrodsPath();
 }

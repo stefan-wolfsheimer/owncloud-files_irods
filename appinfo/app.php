@@ -23,6 +23,7 @@ $app = new Application();
 	'OCA\Files::loadAdditionalScripts',
 	function() {
 		Util::addScript('files_irods', 'irods_popup');
+        Util::addStyle('files_irods', 'irods');
 	}
 );
 

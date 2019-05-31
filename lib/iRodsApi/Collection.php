@@ -67,24 +67,6 @@ class Collection extends Path
         return "dir";
     }
 
-    public function getMeta()
-    {
-        $ret = false;
-        try
-        {
-            $account = $this->session->getAccount();
-            $p = new \ProdsDir($account, $this->path);
-            $ret = $p->getMeta();
-        }
-        catch(Exception $ex)
-        {
-        }
-        finally
-        {
-        }
-        return $ret;
-    }
-
     public function resolve($path, $root=null)
     {
         if($root == null)
@@ -184,23 +166,6 @@ class Collection extends Path
         return $ret;
     }
 
-    public function canEditMetaData()
-    {
-        $roles = $this->session->getRoles();
-        if(array_key_exists("researcher", $roles) && $this->rootCollection)
-        {
-
-            if($this->rootCollection->getState() == "NEW" ||
-               $this->rootCollection->getState() == "REVISED")
-            {
-                return true;
-            }
-        }
-        else
-        {
-            return false;
-        }
-    }
 
     public function canSubmit()
     {
@@ -211,7 +176,6 @@ class Collection extends Path
                $this->rootCollection->getState() == "REVISED")
             {
                 $path = $this->relativePath();
-                error_log($path);
                 if($path)
                 {
                     return count(explode("/",$path))==1;
@@ -244,13 +208,11 @@ class Collection extends Path
         $target = $this->session->resolveCollection($path2);
         if($target === false)
         {
-            error_log("ERR");
             return false;
         }
         try
         {
             $conn = $this->session->open();
-            error_log(" $this->path -> ".$target->getPath());
             $conn->rename($this->path,
                           $target->getPath(),
                           1);
@@ -303,4 +265,9 @@ class Collection extends Path
         return $acl;
     }
 
+    protected function getIrodsPath()
+    {
+        $account = $this->session->getAccount();
+        return  new \ProdsDir($account, $this->path);
+    }
 }

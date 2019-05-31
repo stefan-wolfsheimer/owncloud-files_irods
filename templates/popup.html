@@ -1,0 +1,93 @@
+  <div class="detailFileInfoContainer">
+    <div class="mainFileInfoView">
+      <div class="thumbnailContainer">
+        <a href="#" class="thumbnail action-default">
+          <div class="stretcher"></div>
+        </a>
+      </div>
+      <div class="file-details-container">
+        <div class="fileName">
+          <h3 title="{{name}}" class="ellipsis">{{name}}</h3>
+        </div>
+        <div class="file-details ellipsis">
+        </div>
+      </div>
+    </div>
+    <div class="tabsContainer">
+    <div class="irods-error" id="irods-error">
+      <h3 class="irods-field-header">Error</h3>
+      <div id="irods-error-message">
+        {{data.error}}
+      </div>
+    </div>
+    <div class="irods-warning" id="irods-warning">
+      <h3 class="irods-field-header">Warning</h3>
+      <div id="irods-warning-message">
+        {{data.warning}}
+      </div>
+    </div>
+    <div class="irods-success" id="irods-success">
+      <h3 class="irods-field-header">{{data.success}}</h3>
+    </div>
+
+    {{#each data.entries as |item|}}
+    <h3 class="irods-field-header">{{item.field}}</h3>
+    <ul class="irods-metadata-group" data-field="{{item.field}}">
+      {{#if item.readonly}}
+        {{#each item.values as |value|}}
+          <li class="irods-metadata-entry">
+            <nobr>
+              {{value}}
+            </nobr>
+          </li>
+        {{/each}}
+      {{else}}
+        {{#each item.values as |value|}}
+           <li class="irods-metadata-entry">
+             <nobr>
+               <input class="irods-metadata-entry-value" data-field="{{item.field}}" type="text" value="{{value}}" style="width: 300px"/>
+               <button type="button" class="irods-metadata-remove">-</button>
+             </nobr>
+           </li>
+        {{else}}
+           {{! no values set yet }}
+           <li>
+             <nobr>
+               <input class="irods-metadata-entry-value {{#if item.warning }}irods-input-warning {{else if item.error}} irods-input-error {{/if}} "
+                      data-field="{{item.field}}" type="text" value="" style="width: 300px"/>
+             </nobr>
+           </li>
+        {{/each}}
+        {{! add metadata value }}
+        <li>
+          <button type="button" class="irods-metadata-add" data-field="{{item.field}}">+</button>
+        </li>
+      {{/if}}
+    </ul>
+    {{/each}}
+    <ul>
+      {{#if data.can_edit_meta_data }}
+      <li>
+        <button type="button" id="irods-metadata-save">Save</button>
+      </li>
+      {{/if}}
+      {{#if data.can_submit }}
+      <li>
+        <button type="button" id="irods-metadata-submit">Submit</button>
+      </li>
+      {{/if}}
+      {{#if data.can_approve }}
+      <li>
+        <button type="button" id="irods-metadata-reject">Reject</button>
+      </li>
+      {{/if}}
+      {{#if data.can_approve }}
+      <li>
+        <button type="button" id="irods-metadata-approve">Approve</button>
+      </li>
+      {{/if}}
+    </ul>
+  </div>
+  <a class="close icon-close" href="#" alt="Close">
+  </a>
+

@@ -233,7 +233,6 @@ class iRods extends StorageAdapter
         }
         else
         {
-            error_log("is deletable $path ".$irodsPath->isDeletable());
             return $irodsPath->isDeletable();
         }
     }

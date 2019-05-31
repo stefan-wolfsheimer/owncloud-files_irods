@@ -1,71 +1,6 @@
 (function()
  {
-   var TEMPLATE_READONLY_MD ='';
-   var TEMPLATE_READ_WRITE_MD = '';
-   var TEMPLATE_READONLY_MD ='';
-   var TEMPLATE_READ_WRITE_MD = '';
-   var TEMPLATE =
-       '<div class="detailFileInfoContainer">' +
-       '  <div class="mainFileInfoView">' +
-       '    <div class="thumbnailContainer"><a href="#" class="thumbnail action-default"><div class="stretcher"/></a></div>' +
-      '     <div class="file-details-container">' +
-      '       <div class="fileName">' +
-      '         <h3 title="{{name}}" class="ellipsis">{{name}}</h3>' +
-      '       </div>' + // div fileName
-      '     </div>' + // file-details-container
-      '   </div>' + // mainFileInfoView
-      '</div>' + // detailFileInfoContainer
-/*      '{{#if tabHeaders}}' +
-      '  <ul class="tabHeaders">' +
-      '    {{#each tabHeaders}}' +
-      '	     <li class="tabHeader" data-tabid="{{tabId}}" data-tabindex="{{tabIndex}}">' +
-      '	       <a href="#">{{label}}</a>' +
-      '	     </li>' +
-      '	   {{/each}}' +
-      '	 </ul>' +
-      '{{/if}}' + */
-      '<div class="tabsContainer" style="padding: 15px;">' +
-/*      '  <h3>Archive state</h3>' +
-      '  <ul>' +
-      '    <li>{{state}}</li>' +
-      '  </ul> ' +
-      '  {{#each md as |group name|}}' +
-      '    <h3>{{name}}</h3>' +
-      '    <ul class="irods-metadata-group" data-field="{{name}}"> ' +
-      '      {{#if group.readonly}}' +
-               TEMPLATE_READONLY_MD +
-      '      {{else}}' +
-               TEMPLATE_READ_WRITE_MD +
-      '	     {{/if}}' +
-      '    </ul> ' +
-      '    <br>' +
-      '  {{/each}}' +
-      '  <ul> ' +
-      '    {{#if savable }}' +
-      '      <li> ' +
-      '        <button type="button" id="irods-metadata-save">Save</button>' +
-      '      </li> ' +
-      '    {{/if}} ' +
-      '    {{#if submittable }}' +
-      '      <li> ' +
-      '        <button type="button" id="irods-metadata-submit">Submit</button>' +
-      '      </li> ' +
-      '    {{/if}} ' +
-      '    {{#if approvable }}' +
-      '      <li> ' +
-      '        <button type="button" id="irods-metadata-reject">Reject</button>' +
-      '      </li> ' +
-      '    {{/if}} ' +
-      '    {{#if approvable }}' +
-      '      <li> ' +
-      '        <button type="button" id="irods-metadata-approve">Approve</button>' +
-      '      </li> ' +
-      '    {{/if}} ' +
-      '  </ul> ' + */
-      '	</div>' + //tabscontainer
-      '	<a class="close icon-close" href="#" alt="{{closeLabel}}"></a>';
-
-   TEMPLATE = '<div id="app-sidebar" class="detailsView scroll-container">	<div class="detailFileInfoContainer">	<div class="mainFileInfoView"><div class="thumbnailContainer"><a href="#" class="thumbnail action-default" style="background-image: url(&quot;/core/img/filetypes/folder-external.svg&quot;);"><div class="stretcher"></div></a></div><div class="file-details-container"><div class="fileName"><h3 title="" class="ellipsis" data-original-title="test3">test3</h3><a class="permalink" href="http://127.0.0.1/f/29" title="" data-original-title="Private link:  Only people who have access to the file/folder can use it. Use it as a permanent link for yourself or to point others to files within shares"><span class="icon icon-public"></span><span class="hidden-visually">Private link:  Only people who have access to the file/folder can use it. Use it as a permanent link for yourself or to point others to files within shares</span></a></div>	<div class="file-details ellipsis">		<a href="#" class="action action-favorite favorite permanent">			<span class="icon icon-star" title="" data-original-title="Favorite"></span>		</a>		<span class="size" title="" data-original-title="-1 bytes">&lt; 1 KB</span>, <span class="date" title="" data-original-title="May 25, 2019 5:34 PM">3 hours ago</span>	</div></div><div class="hidden permalink-field"><input type="text" value="http://127.0.0.1/f/29" placeholder="Private link:  Only people who have access to the file/folder can use it. Use it as a permanent link for yourself or to point others to files within shares" readonly="readonly"></div></div><div class="systemTagsInfoView"><div class="systemTagsInputFieldContainer"><div class="select2-container select2-container-multi systemTagsInputField systemtags-select2-container" id="s2id_autogen7"><ul class="select2-choices">  <li class="select2-search-field">    <label for="s2id_autogen8" class="select2-offscreen"></label>    <input type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="select2-input select2-default" id="s2id_autogen8" placeholder="" style="width: 100%;">  </li></ul><div class="select2-drop select2-drop-multi select2-display-none systemtags-select2-dropdown">   <ul class="select2-results">   </ul></div></div><input class="systemTagsInputField" type="hidden" name="tags" value="" tabindex="-1" style="display: none;"></div></div></div>		<ul class="tabHeaders">				<li class="tabHeader selected" data-tabid="activityTabView" data-tabindex="0">			<a href="#">Activities</a>		</li>				<li class="tabHeader" data-tabid="commentsTabView" data-tabindex="1">			<a href="#">Comments</a>		</li>				<li class="tabHeader" data-tabid="shareTabView" data-tabindex="2">			<a href="#">Sharing</a>		</li>				<li class="tabHeader hidden" data-tabid="versionsTabView" data-tabindex="3">			<a href="#">Versions</a>		</li>			</ul>		<div class="tabsContainer">	<div id="activityTabView" class="activityTabView tab"><div class="activity-section"><div class="loading hidden" style="height: 50px"></div><ul class="activities">    <li class="empty hidden">No activities</li><li class="activity box">        <div class="activity-icon icon-add-color svg"></div>        <div class="activitysubject">You created <a class="filename has-tooltip" href="http://127.0.0.1/apps/files/?dir=/iRODS/LandingZone/test3" title="" data-original-title="in iRODS/LandingZone">test3</a></div>        <span class="activitytime has-tooltip" title="" data-original-title="May 25, 2019 3:43 PM">5 hours ago</span>        <div class="activitymessage"></div>            </li></ul><input type="button" class="showMore hidden" value="Load more activities" <="" div=""></div></div></div>	<a class="close icon-close" href="#" alt="Close"></a></div>';
+   var TEMPLATE = '';
 
    function iRodsMetaDataView(file, context) {
      if(typeof context.fileList._irodsMetaView == 'undefined') {
@@ -108,6 +43,8 @@
    if (!OCA.IRODS_POPUP)
    {
      OCA.IRODS_POPUP = {
+       template_html: '',
+
        attach: function(fileList) {
          var url = OC.generateUrl('/apps/files_irods/api/virtual');
          $.getJSON(url)
@@ -129,9 +66,10 @@
                }
                return actions;
              });
-
-             data['mount_points'].forEach(function(mp) {
-             });
+             $.get(OC.filePath('files_irods', 'templates', 'popup.html'))
+               .done(function(template) {
+                 TEMPLATE = template;
+               });
            })
            .fail(function(err) {
            });
@@ -143,6 +81,11 @@
    // View
    /////////////////////////////////////////////////////////////
    OCA.IRODS_POPUP.View =  OC.Backbone.View.extend({
+     id: 'app-sidebar',
+     tabName: 'div',
+     className: 'detailsView scroll-container',
+     events: { 'click a.close': '_onClose' },
+
      setPath: function(context) {
        this.path = context.dir;
        if(this.path != '/') {
@@ -157,12 +100,10 @@
        }
        else {
          this.iconurl = OC.MimeType.getIconUrl(context.fileInfoModel.get('mimetype'));
-         var iconurl = OC.MimeType.getIconUrl(context.fileInfoModel.get('mimetype'));
        }
      },
 
      load: function() {
-       var deferred = $.Deferred();
        var self = this;
        $.getJSON(this.apiUrl)
          .done(function(data) {
@@ -170,31 +111,141 @@
            if(typeof data == "string") {
              data = JSON.parse(data);
            }
-           self.render(null, null, null);
+           self.render(data);
          })
          .fail(function(err) {
-           console.log(err);
+           self.render({});
+           self.displayError('error', 'failed to load data');
          });
      },
 
      // render functions
-     template: function(vars) {
-      if (!this._template) {
-	this._template = Handlebars.compile(TEMPLATE);
-      }
-      return this._template(vars);
-    },
-
-     render: function(file, data, cfg) {
+     render: function(data, cfg) {
        var templateVars = {
 	 closeLabel: t('files', 'Close'),
-         name: 'XXX',
-         //md: data,
-         //data: JSON.stringify(data)
+         name: data.file,
+         data: data
        };
-       this.$el.html(this.template(templateVars));
+       if (!this._template) {
+	 this._template = Handlebars.compile(TEMPLATE);
+       }
+       this.$el.html(this._template(templateVars));
        this.$el.find('.thumbnail').css('background-image', 'url("' + this.iconurl + '")');
+       var self = this;
+       $(".irods-metadata-group").on('click', '.irods-metadata-add', function(event) {
+         self.addMetadata(event);
+       });
+       $(".irods-metadata-group").on('click', '.irods-metadata-remove', function(event) {
+         self.removeMetadata(event);
+       });
+       $(".irods-metadata-group").on('change keyup paste', '.irods-metadata-entry-value', function(event) {
+         $(event.target).removeClass('irods-input-warning');
+         $(event.target).removeClass('irods-input-error');
+       });
+       $("#irods-metadata-save").on('click', function(event) {
+         self.saveMetadata(event, "update");
+       });
+       $("#irods-metadata-submit").on('click', function(event) {
+         self.saveMetadata(event, "submit");
+       });
+       $("#irods-metadata-reject").on('click', function(event) {
+         self.approveReject(event, 'reject');
+       });
+       $("#irods-metadata-approve").on('click', function(event) {
+         self.approveReject(event, 'approve');
+       });
+
+       ['error', 'warning'].forEach(function(type) {
+         if(typeof data[type] != 'undefined' && data[type]) {
+           self.displayError(type, data[type]);
+         }});
+     },
+
+     _onClose: function(event) {
+      OC.Apps.hideAppSidebar(this.$el);
+      event.preventDefault();
+     },
+
+     addMetadata: function(event) {
+       var name = $(event.target).attr('data-field');
+       var html = '<li><nobor>' +
+           ' <input class="irods-metadata-entry-value" data-field="' + name + '" type="text" value="" style="width: 300px"/>' +
+           ' <button type="button" class="irods-metadata-remove">-</button>' +
+           '</nobr></li>';
+       var sel = $(".irods-metadata-group[data-field='" + name + "'] li:last");
+       sel.before(html);
+     },
+
+     removeMetadata: function(event) {
+       event.preventDefault();
+       var numberOfValues = $(event.target).parent().parent().parent().find('.irods-metadata-entry').size();
+       if(numberOfValues <= 1) {
+         return;
+       }
+       else {
+         $(event.target).parent().parent().remove();
+       }
+     },
+
+     saveMetadata: function(event, op) {
+      var md = [];
+      $(".irods-metadata-entry-value").each(function(k, elem) {
+        var field = $(elem).attr('data-field');
+        var value = $(elem).val().trim();
+        if(value) {
+          md.push({"field": field,
+                   "value": value,
+                   "units": null});
+        }
+      });
+      var self = this;
+      var url = this.apiUrl;
+      $.ajax({
+          url: url,
+          type: 'PUT',    
+          data: {"entries": md,
+                 "op": op},
+          success: function(data) {
+            // why does getJSON return string ???
+            if(typeof data == "string") {
+              data = JSON.parse(data);
+            }
+            if(typeof data.error !== undefined && data.error) {
+              if(typeof data.entries !== undefined) {
+                self.render(data);
+              }
+              self.displayError('error', data.error);
+            }
+            else {
+              self.render(data);
+              if(typeof data.warning !== undefined && data.warning) {
+                self.displayError('warning', data.warning);
+              }
+              else {
+                self.hideError();
+              }
+              if(op == "submit")
+              {
+                var url = OC.generateUrl('/apps/files/?dir=/iRODS/Submitted');
+                $(location).attr('href', url);
+              }
+            }
+          },
+          error: function(data) {
+            self.displayError('Failed to save metadata');
+          }
+      });
+     },
+
+     displayError : function(type, msg) {
+       $( "#irods-" + type + "-message" ).html(msg);
+       $( "#irods-" + type).show();
+     },
+
+     hideError : function() {
+       $( "#irods-error" ).hide();
      }
+
    });
 
  })();

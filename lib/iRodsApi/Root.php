@@ -50,6 +50,7 @@ class Root extends Path
         }
     }
 
+
     public function resolveCollection($path)
     {
         $chunks = explode("/", $path, 2);
@@ -88,5 +89,10 @@ class Root extends Path
     public function isReadable()
     {
         return true;
+    }
+
+    protected function getIrodsPath()
+    {
+        return false;
     }
 };

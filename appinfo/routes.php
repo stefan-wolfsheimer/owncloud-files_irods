@@ -15,11 +15,11 @@ $application->registerRoutes($this, [
             'verb' => 'GET',
             'requirements' => ['path' => '.*']
         ],
-        // [
-        //     'name' => 'irodsmeta#update',
-        //     'url' => '/api/meta/{path}',
-        //     'verb' => 'PUT',
-        //     'requirements' => ['path' => '.*']
-        // ]
+        [
+            'name' => 'Meta#put',
+            'url' => '/api/meta/{path}',
+            'verb' => 'PUT',
+            'requirements' => ['path' => '.*']
+        ]
     ]
 ]);

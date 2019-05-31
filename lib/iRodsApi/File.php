@@ -49,24 +49,6 @@ class File extends Path
         }
     }
 
-    public function getMeta()
-    {
-        $ret = false;
-        try
-        {
-            $account = $this->session->getAccount();
-            $p = new \ProdsFile($account, $this->path);
-            $ret = $p->getMeta();
-        }
-        catch(Exception $ex)
-        {
-        }
-        finally
-        {
-        }
-        return $ret;
-    }
-
     public function resolveCollection($path)
     {
         return false;
@@ -178,5 +160,11 @@ class File extends Path
             $acl[] = "read";
         }
         return $acl;
+    }
+
+    protected function getIrodsPath()
+    {
+        $account = $this->session->getAccount();
+        return  new \ProdsFile($account, $this->path);
     }
 }

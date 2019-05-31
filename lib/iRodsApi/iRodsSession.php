@@ -80,6 +80,7 @@ class iRodsSession
         if(!$this->roles)
         {
             $this->initRoles = [];
+            $throwex = null;
             try
             {
                 $conn = $this->open();
@@ -97,10 +98,15 @@ class iRodsSession
             }
             catch(Exception $ex)
             {
+                $throwex = $ex;
             }
             finally
             {
                 $this->close($conn);
+            }
+            if($throwex)
+            {
+                throw $throwex;
             }
         }
         return $this->roles;
@@ -128,12 +134,9 @@ class iRodsSession
         }
         if($params === false)
         {
-            return false;
+            throw \Exception("cannot resolve path '$path'");
         }
-        else
-        {
-            return new IRodsSession($params);
-        }
+        return new IRodsSession($params);
     }
 
     /**
