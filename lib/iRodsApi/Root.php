@@ -55,42 +55,6 @@ class Root extends Path
         }
     }
 
-
-    public function resolveCollection($path)
-    {
-        $chunks = explode("/", $path, 2);
-        if(array_key_exists($chunks[0], $this->subpaths))
-        {
-            if(count($chunks) < 2)
-            {
-                $chunks[] = "";
-            }
-            return $this->subpaths[$chunks[0]]->resolveCollection($chunks[1]);
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    public function resolveFile($path)
-    {
-        $chunks = explode("/", $path, 2);
-        if(array_key_exists($chunks[0], $this->subpaths))
-        {
-            if(count($chunks) < 2)
-            {
-                $chunks[] = "";
-            }
-            return $this->subpaths[$chunks[0]]->resolveFile($chunks[1]);
-        }
-        else
-        {
-            return false;
-        }
-
-    }
-
     public function isReadable()
     {
         return true;

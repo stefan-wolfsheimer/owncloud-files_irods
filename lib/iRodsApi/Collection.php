@@ -104,38 +104,15 @@ class Collection extends Path
         }
     }
 
-    public function resolveCollection($path)
-    {
-        if($path == "")
-        {
-            return $this;
-        }
-        else
-        {
-            return new Collection($this->session, $this->path."/".$path);
-        }
-    }
-
-    public function resolveFile($path)
-    {
-        if($path == "")
-        {
-            return false;
-        }
-        else
-        {
-            return new File($this->session, $this->path."/".$path, $this->rootCollection);
-        }
-    }
-
-    public function mkdir()
+    public function mkdir($name)
     {
         $ret = false;
         try
         {
+            $path = $this->path."/".$name;
             $conn = $this->session->open();
-            $conn->mkdir($this->path, true);
-            $ret = $conn->dirExists($this->path);
+            $conn->mkdir($path, true);
+            $ret = $conn->dirExists($path);
         }
         catch(Exception $ex)
         {
@@ -192,14 +169,27 @@ class Collection extends Path
         }
     }
 
+    public function canApproveAndReject()
+    {
+        $roles = $this->session->getRoles();
+        if(array_key_exists("steward", $roles) && $this->rootCollection && $this->rootCollection->getState() == "SUBMITTED")
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     public function canApprove()
     {
-        return false;
+        return $this->canApproveAndReject();
     }
 
     public function canReject()
     {
-        return false;
+        return $this->canApproveAndReject();
     }
 
     public function rename($path2)
@@ -226,6 +216,19 @@ class Collection extends Path
             $this->session->close($conn);
         }
         return $ret;
+    }
+
+    public function getState()
+    {
+        $coll = new Collection($this->session, $this->path);
+        foreach($coll->getMeta() as $alu)
+        {
+            if($alu->name == "IBRIDGES_STATE")
+            {
+                return $alu->value;
+            }
+        }
+        return 'NEW';
     }
 
     protected function getStats($conn)

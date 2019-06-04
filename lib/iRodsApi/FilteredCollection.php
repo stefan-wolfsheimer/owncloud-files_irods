@@ -12,13 +12,8 @@ class FilteredCollection extends Collection
 
     public function __construct(iRodsSession $session, $path, $state)
     {
-        parent::__construct($session, $path);
+        parent::__construct($session, $path, $this);
         $this->state = $state;
-    }
-
-    public function isLocked()
-    {
-        return $this->state != "NEW" && $this->state != "REVISED";
     }
 
     public function getState()
@@ -35,15 +30,21 @@ class FilteredCollection extends Collection
                        "recursive" => false,
                        "metadata" => array(new \RODSMeta("IBRIDGES_STATE", $this->state,
                                                          null, null, "=")));
+        $fileterms = array("metadata" => array(new \RODSMeta("IBRIDGES_STATE", $this->state,
+                                                             null, null, "=")));
 
         if($dir !== false)
         {
             try
             {
-                foreach($dir->getChildFiles() as $child)
+                foreach($dir->findFiles($fileterms,
+                                        $total_num_rows,
+                                        $startingInx,
+                                        $maxresults) as $child)
                 {
                     $files[] = $child->getName();
                 }
+
                 $maxresults = -1;
                 $total_num_rows = -1;
                 foreach($dir->findDirs($terms,

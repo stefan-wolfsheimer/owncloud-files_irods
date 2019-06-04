@@ -11,6 +11,7 @@ class MetaController extends Controller
     public function __construct($AppName, $request)
     {
         parent::__construct($AppName, $request);
+
         $this->profile = array(
             array(
                 'field'=>'IBRIDGES_STATE',
@@ -36,6 +37,11 @@ class MetaController extends Controller
                 'field'=>'Description',
                 'type'=> 'str',
                 'mode'=> 'rw'));
+
+        $this->approvalStates = array("reject" => "REJECTED",
+                                      "approve" => "APPROVED",
+                                      "revise" => "REVISED");
+
     }
 
     /**
@@ -67,7 +73,7 @@ class MetaController extends Controller
         try
         {
             $session = iRodsSession::createFromPath($path);
-            $irodsPath = $session->resolvePath($this->stripMountPoint($path));
+            $irodsPath = $session->resolve($this->stripMountPoint($path));
             if($irodsPath)
             {
                 $data = $this->getMetaData($irodsPath, $session);
@@ -103,35 +109,38 @@ class MetaController extends Controller
             {
                 $entries  = [];
             }
-            $irodsPath = $session->resolvePath($this->stripMountPoint($path));
+            $irodsPath = $session->resolve($this->stripMountPoint($path));
             if($irodsPath)
             {
-                $data = $this->getMetaDataFromRequest($irodsPath, $entries, $session, true);
-                if($op == "update")
+                if($op == "update" || $op == "submit")
                 {
-                    $data = $this->validate($data, "warning");
+                    $warnerr = ($op == "update" ? "warning" : "error");
+                    $data = $this->getMetaDataFromRequest($irodsPath, $entries, $session, true);
+                    $data = $this->validate($data, $warnerr);
+                    if(!$data['error'] && $data['can_edit_meta_data'])
+                    {
+                        $data = $this->update($irodsPath, $data);
+                        if(!$this->update($irodsPath, $data))
+                        {
+                            $data['error'] = 'failed to update MetaData';
+                        }
+                    }
+                    if($op == "submit" && !$data['error'])
+                    {
+                        $data = $this->submit($irodsPath, $data, "submit");
+                    }
+                    return $data;
                 }
-                else if($op == "submit")
+                else if(array_key_exists($op, $this->approvalStates) && $irodsPath->canApproveAndReject())
                 {
-                    $data = $this->validate($data, "error");
+                    $data = $this->getMetaData($irodsPath, $session);
+                    $data = $this->submit($irodsPath, $data, $op);
+                    return $data;
                 }
                 else
                 {
-                    throw new \Exception("invalid operation '$op'");
+                    throw new \Exception("invalid operation");
                 }
-                if(!$data['error'])
-                {
-                    $data = $this->update($irodsPath, $data);
-                    if(!$this->update($irodsPath, $data))
-                    {
-                        $data['error'] = 'failed to update MetaData';
-                    }
-                }
-                if($op == "submit" && !$data['error'])
-                {
-                    $data = $this->submit($irodsPath, $data);
-                }
-                return $data;
             }
             else
             {
@@ -177,18 +186,19 @@ class MetaController extends Controller
         return $data;
     }
 
-    public function submit($irodsPath, $md)
+    public function submit($irodsPath, $md, $op)
     {
+        $target = ($op == "submit") ? "SUBMITTED" : $target = $this->approvalStates[$op];
         if(!$md['error'])
         {
             if(!$irodsPath->rmMeta(["IBRIDGES_STATE"]) ||
-               !$irodsPath->setMeta("IBRIDGES_STATE", "SUBMITTED"))
+               !$irodsPath->setMeta("IBRIDGES_STATE", $target))
             {
-                throw new \Exception("failed to change state to SUBMITTED");
+                throw new \Exception("failed to change state to $target");
             }
             else
             {
-                $md['state'] = "SUBMITTED";
+                $md['state'] = $target;
             }
         }
         return $md;

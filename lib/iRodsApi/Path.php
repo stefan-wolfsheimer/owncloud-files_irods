@@ -164,7 +164,5 @@ abstract class Path
     abstract public function getChildren();
     abstract public function filetype();
     abstract public function resolve($path, $root=null);
-    abstract public function resolveCollection($path);
-    abstract public function resolveFile($path);
     abstract protected function getIrodsPath();
 }

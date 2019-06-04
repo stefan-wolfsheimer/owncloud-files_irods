@@ -15,18 +15,6 @@ class File extends Path
         $this->rootCollection = $root;
     }
 
-    public function isLocked()
-    {
-        if($this->root_coll)
-        {
-            return $this->root_coll->isLocked();
-        }
-        else
-        {
-            return true;
-        }
-    }
-
     public function getChildren()
     {
         return [];
@@ -38,23 +26,6 @@ class File extends Path
     }
 
     public function resolve($path, $root=null)
-    {
-        if($path == "")
-        {
-            return $this;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    public function resolveCollection($path)
-    {
-        return false;
-    }
-
-    public function resolveFile($path)
     {
         if($path == "")
         {
@@ -104,11 +75,10 @@ class File extends Path
     }
 
 
-    function rename($path2)
+    function rename($target)
     {
         $ret = false;
-        $target = $this->session->resolveFile($path2);
-        if($target === false)
+        if(!($target instanceof File))
         {
             return false;
         }

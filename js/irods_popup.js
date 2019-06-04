@@ -51,13 +51,12 @@
            .done(function(data) {
              fileList.fileActions.registerAction({
                name: 'irods_metadata',
-               displayName: 'iRODS Meta Data',
+               displayName: 'Metadata',
                mime: 'all',
                permissions: OC.PERMISSION_READ,
                icon: OC.imagePath('files_irods', 'eye'),
                actionHandler: iRodsMetaDataView
              });
-
              fileList.fileActions.addAdvancedFilter(function(actions, context) {
                if(!isIrodsData(context.$file[0].attributes,
                                data['mount_points']))
@@ -129,8 +128,6 @@
        if (!this._template) {
 	 this._template = Handlebars.compile(TEMPLATE);
        }
-       console.log('---------');
-       console.log(data);
        this.$el.html(this._template(templateVars));
        this.$el.find('.thumbnail').css('background-image', 'url("' + this.iconurl + '")');
        var self = this;
@@ -151,10 +148,13 @@
          self.saveMetadata(event, "submit");
        });
        $("#irods-metadata-reject").on('click', function(event) {
-         self.approveReject(event, 'reject');
+         self.saveMetadata(event, 'reject');
+       });
+       $("#irods-metadata-revise").on('click', function(event) {
+         self.saveMetadata(event, 'revise');
        });
        $("#irods-metadata-approve").on('click', function(event) {
-         self.approveReject(event, 'approve');
+         self.saveMetadata(event, 'approve');
        });
 
        ['error', 'warning'].forEach(function(type) {
@@ -232,6 +232,19 @@
               var url = OC.generateUrl('/apps/files/?dir=/' + data.state_urls['SUBMITTED']);
               $(location).attr('href', url);
             }
+            if(op == "approve" && !data.error && data.state == 'APPROVED') {
+              var url = OC.generateUrl('/apps/files/?dir=/' + data.state_urls['APPROVED']);
+              $(location).attr('href', url);
+            }
+            if(op == "reject" && !data.error && data.state == 'REJECTED') {
+              var url = OC.generateUrl('/apps/files/?dir=/' + data.state_urls['REJECTED']);
+              $(location).attr('href', url);
+            }
+            if(op == "revise" && !data.error && data.state == 'REVISED') {
+              var url = OC.generateUrl('/apps/files/?dir=/' + data.state_urls['REVISED']);
+              $(location).attr('href', url);
+            }
+
             self.render(data);
             if(typeof data.error !== undefined && data.error) {
               self.displayError('error', data.error);

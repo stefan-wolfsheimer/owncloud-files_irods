@@ -1,8 +1,14 @@
 <?php
 namespace OCA\files_irods\iRodsApi;
 
-trait iRodsPath {
+trait iRodsPath
+{
     protected $rootCollection = null;
+
+    public function getRootCollection()
+    {
+        return $this->rootCollection;
+    }
 
     public function stat()
     {
@@ -65,18 +71,81 @@ trait iRodsPath {
         return $ret;
     }
 
-    public function isLocked()
+    public function pathRelativeToRoot()
     {
-        if($this->rootCollection)
+        $prefix = $this->rootCollection->getPath();
+        if(substr($this->path, 0, strlen($prefix)) == $prefix)
         {
-            return $this->rootCollection->isLocked();
+            return substr($this->path, strlen($prefix));
         }
         else
         {
-            return true;
+            return false;
         }
     }
 
+    public function getState()
+    {
+        $ret = false;
+        if($this->rootCollection)
+        {
+            $relpath = $this->pathRelativeToRoot();
+            list($first, $rest) = explode("/",$relpath,2);
+            $path = $this->rootCollection->getPath().$first;
+            try
+            {
+                $conn = $this->session->open();
+                if($conn->dirExists ($path))
+                {
+                    $p = new Collection($this->session, $path);
+                }
+                else if($conn->fileExists ($path))
+                {
+                    $p = new File($this->session, $path);
+                }
+                else
+                {
+                    throw new \Exception("invalid path $path");
+                }
+                $irodsPath = $p->getIrodsPath();
+                foreach($irodsPath->getMeta() as $alu)
+                {
+                    if($alu->name == "IBRIDGES_STATE")
+                    {
+                        $ret = $alu->value;
+                        break;
+                    }
+                }
+            }
+            catch(\Exception $ex)
+            {
+            }
+            finally
+            {
+                $this->session->close($conn);
+            }
+            return $ret;
+        }
+        else
+        {
+            return "NEW";
+        }
+    }
+
+    public function isRootContainer()
+    {
+        $ret = false;
+        if($this->rootCollection)
+        {
+            $relpath = $this->pathRelativeToRoot();
+            list($first, $rest) = explode("/",$relpath,2);
+            return ($rest == "");
+        }
+        else
+        {
+            return false;
+        }
+    }
 
     public function isReadable()
     {
@@ -86,12 +155,17 @@ trait iRodsPath {
 
     public function isUpdatable()
     {
-        if($this->isLocked())
+        $state = $this->getState();
+        if($state != "NEW" && $state != "REVISED")
         {
             return false;
         }
         else
         {
+            if($state == "REVISED" && $this->isRootContainer())
+            {
+                return false;
+            }
             $acl = $this->acl();
             return $acl == "write" || $acl == "own";
         }
@@ -99,12 +173,17 @@ trait iRodsPath {
 
     public function isCreatable()
     {
-        if($this->isLocked())
+        $state = $this->getState();
+        if($state != "NEW" && $state != "REVISED")
         {
             return false;
         }
         else
         {
+            if($state == "REVISED" && $this->isRootContainer())
+            {
+                return false;
+            }
             $acl = $this->acl();
             return $acl == "write" || $acl == "own";
         }
@@ -112,12 +191,17 @@ trait iRodsPath {
 
     public function isDeletable()
     {
-        if($this->isLocked())
+        $state = $this->getState();
+        if($state != "NEW" && $state != "REVISED")
         {
             return false;
         }
         else
         {
+            if($state == "REVISED" && !$this->isRootContainer())
+            {
+                return false;
+            }
             $acl = $this->acl();
             return $acl == "write" || $acl == "own";
         }

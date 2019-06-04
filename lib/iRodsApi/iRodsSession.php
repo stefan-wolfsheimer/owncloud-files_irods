@@ -11,6 +11,7 @@ class iRodsSession
     private $root = null;
     private $roles = null;
     private $storageMountPoint = null;
+    private $researchGroupName = "researcher";
 
     public function __construct($params, $storageMountPoint = null)
     {
@@ -29,13 +30,12 @@ class iRodsSession
             $this->params["auth_mode"] = "Native";
         }
         $this->getRoles();
-        if(array_key_exists("researcher", $this->roles))
+        if(array_key_exists($this->researchGroupName, $this->roles))
         {
             $this->root = new Root($this,
                                    [
-                                       "LandingZone"=> new FilteredCollection($this,
-                                                                              $this->home(),
-                                                                              "NEW"),
+                                       "DropZone"=> new Collection($this,
+                                                                   $this->home()),
                                        "Submitted"=> new FilteredCollection($this,
                                                                             $this->home(),
                                                                             "SUBMITTED"),
@@ -53,15 +53,18 @@ class iRodsSession
         {
             $this->root = new Root($this,
                                    [
-                                       "Submitted"=> new FilteredCollection($this,
-                                                                            $this->home(),
-                                                                            "SUBMITTED"),
-                                       "Revised"=> new FilteredCollection($this,
-                                                                          $this->home(),
-                                                                          "REVISED"),
-                                       "Rejected"=> new FilteredCollection($this,
-                                                                           $this->home(),
-                                                                           "REJECTED"),
+                                       "Submitted"=> new FilteredHomeCollection($this,
+                                                                                $this->researchGroupName,
+                                                                                sprintf("/%s/home/%%s", $this->params['zone']) ,
+                                                                                "SUBMITTED"),
+                                       "Revised"=> new FilteredHomeCollection($this,
+                                                                              $this->researchGroupName,
+                                                                              sprintf("/%s/home/%%s", $this->params['zone']),
+                                                                              "REVISED"),
+                                       "Rejected"=> new FilteredHomeCollection($this,
+                                                                               $this->researchGroupName,
+                                                                               sprintf("/%s/home/%%s", $this->params['zone']),
+                                                                               "REJECTED"),
                                        "Archive"=> new Collection($this, sprintf("/%s/home/public",
                                                                                  $this->params['zone']))
                                    ]);
@@ -114,6 +117,39 @@ class iRodsSession
         return $this->roles;
     }
 
+    public function getUsersOfGroup($group)
+    {
+        $throwex = null;
+        $ret = [];
+        try
+        {
+            $conn = $this->open();
+            $que = $conn->genQuery(
+                array("COL_USER_NAME", "COL_USER_GROUP_NAME"),
+                array(new \RODSQueryCondition("COL_USER_GROUP_NAME", $group),
+                      new \RODSQueryCondition("COL_USER_ZONE", $this->params['zone'])));
+            for($i=0; $i<sizeof($que["COL_USER_NAME"]);$i++)
+            {
+                if($que["COL_USER_NAME"][$i] != $group)
+                {
+                    $ret[$que["COL_USER_NAME"][$i]] = true;
+                }
+            }
+        }
+        catch(Exception $ex)
+        {
+            $throwex = $ex;
+        }
+        finally
+        {
+            $this->close($conn);
+        }
+        if($throwex)
+        {
+            throw $throwex;
+        }
+        return array_keys($ret);
+    }
 
     /**
      * Create an IRodsSession object from an owncloud path.
@@ -176,7 +212,7 @@ class iRodsSession
         $ret = array();
         foreach($this->root->getChildCollectionMapping() as $k=>$coll)
         {
-            if($coll instanceof FilteredCollection)
+            if(method_exists($coll, "getState"))
             {
                 $ret[$coll->getState()] = $this->storageMountPoint."/".$k;
             }
@@ -190,19 +226,23 @@ class iRodsSession
      * @param string $path owncloud path
      * @return string | false
      */
-    public function resolvePath($path)
+    public function resolve($path)
     {
         return $this->root->resolve($path);
     }
 
-    public function resolveCollection($path)
+    public function getNewFile($path)
     {
-        return $this->root->resolveCollection($path);
+        $child = basename($path);
+        $path = dirname($path);
+        $irodsPath = $this->resolve($path);
+        if(!($irodsPath instanceof Collection))
+        {
+            return false;
+        }
+        $file = new File($this,
+                         $irodsPath->getPath()."/".$child,
+                         $irodsPath->getRootCollection());
+        return $file;
     }
-
-    public function resolveFile($path)
-    {
-        return $this->root->resolveFile($path);
-    }
-
 }

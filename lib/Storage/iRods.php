@@ -27,10 +27,12 @@ class iRods extends StorageAdapter
 
     public function mkdir($path)
     {
-        $collection = $this->irodsSession->resolveCollection($path);
-        if($collection)
+        $child = basename($path);
+        $path = dirname($path);
+        $collection = $this->irodsSession->resolve($path);
+        if($collection && $collection instanceof Collection)
         {
-            return $collection->mkdir();
+            return $collection->mkdir($child);
         }
         else
         {
@@ -53,7 +55,7 @@ class iRods extends StorageAdapter
 
     public function opendir($path)
     {
-        $irodsPath = $this->irodsSession->resolvePath($path);
+        $irodsPath = $this->irodsSession->resolve($path);
         if($irodsPath)
         {
             $files = $irodsPath->getChildren();
@@ -67,13 +69,13 @@ class iRods extends StorageAdapter
 
     public function stat($path)
     {
-        $irodsPath = $this->irodsSession->resolvePath($path);
+        $irodsPath = $this->irodsSession->resolve($path);
         return $irodsPath->stat();
     }
 
     public function filetype($path)
     {
-        $irodsPath = $this->irodsSession->resolvePath($path);
+        $irodsPath = $this->irodsSession->resolve($path);
         if($irodsPath === false)
         {
             return false;
@@ -92,7 +94,7 @@ class iRods extends StorageAdapter
     public function unlink($path)
     {
         $ret = false;
-        $irodsPath = $this->irodsSession->resolvePath($path);
+        $irodsPath = $this->irodsSession->resolve($path);
         if($irodsPath instanceof File)
         {
             return $irodsPath->unlink();
@@ -105,11 +107,11 @@ class iRods extends StorageAdapter
 
     public function rename($path1, $path2)
     {
-        $ret = false;
-        $irodsPath = $this->irodsSession->resolvePath($path1);
-        if($irodsPath instanceof File || $irodsPath instanceof Collection)
+        $file1 = $this->irodsSession->resolve($path1);
+        $file2 = $this->irodsSession->getNewFile($path2);
+        if($file1 instanceof File && $file2 instanceof File)
         {
-            return $irodsPath->rename($path2);
+            return $file1->rename($file2);
         }
         else
         {
@@ -119,16 +121,16 @@ class iRods extends StorageAdapter
 
     public function fopen($path, $mode)
     {
-        iRodsStreamHandler::register_proto();
-        $irodsPath = $this->irodsSession->resolveFile($path);
-        if(!($irodsPath instanceof File))
+        $file = $this->irodsSession->getNewFile($path);
+        if(!$file)
         {
             return false;
         }
+        iRodsStreamHandler::register_proto();
         switch ($mode) {
             case 'r':
             case 'rb':
-                return fopen($irodsPath->url(), "r");
+                return fopen($file->url(), "r");
             case 'w':
 			case 'wb':
 			case 'a':
@@ -141,7 +143,7 @@ class iRods extends StorageAdapter
 			case 'x+':
 			case 'c':
 			case 'c+':
-                return fopen($irodsPath->url(), "w");
+                return fopen($file->url(), "w");
 		}
 		return false;
     }
@@ -187,7 +189,7 @@ class iRods extends StorageAdapter
 
     public function isReadable($path)
     {
-        $irodsPath = $this->irodsSession->resolvePath($path);
+        $irodsPath = $this->irodsSession->resolve($path);
         if($irodsPath === false)
         {
             return false;
@@ -200,7 +202,7 @@ class iRods extends StorageAdapter
 
     public function isUpdatable($path)
     {
-        $irodsPath = $this->irodsSession->resolvePath($path);
+        $irodsPath = $this->irodsSession->resolve($path);
         if($irodsPath === false)
         {
             return false;
@@ -213,7 +215,7 @@ class iRods extends StorageAdapter
 
     public function isCreatable($path)
     {
-        $irodsPath = $this->irodsSession->resolvePath($path);
+        $irodsPath = $this->irodsSession->resolve($path);
         if($irodsPath === false)
         {
             return false;
@@ -226,7 +228,7 @@ class iRods extends StorageAdapter
 
     public function isDeletable($path)
     {
-        $irodsPath = $this->irodsSession->resolvePath($path);
+        $irodsPath = $this->irodsSession->resolve($path);
         if($irodsPath === false)
         {
             return false;
