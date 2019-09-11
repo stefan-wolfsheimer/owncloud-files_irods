@@ -42,6 +42,12 @@ abstract class Path
         return false;
     }
 
+    public function isMetaDataEditable()
+    {
+        return false;
+    }
+
+    /** @todo move to business layer */
     public function canEditMetaData()
     {
         $roles = $this->session->getRoles();
@@ -60,16 +66,19 @@ abstract class Path
         }
     }
 
+    /** @todo move to business layer */
     public function canSubmit()
     {
         return false;
     }
 
+    /** @todo move to business layer */
     public function canApprove()
     {
         return false;
     }
 
+    /** @todo move to business layer */
     public function canReject()
     {
         return false;

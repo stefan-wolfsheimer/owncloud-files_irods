@@ -15,6 +15,12 @@ class File extends Path
         $this->rootCollection = $root;
     }
 
+    /**
+     * relative path to root collection
+     * @todo implement this function
+     */
+    //public function relativePath()
+        
     public function getChildren()
     {
         return [];

@@ -143,7 +143,7 @@ class Collection extends Path
         return $ret;
     }
 
-
+    /** @todo move to business layer */
     public function canSubmit()
     {
         $roles = $this->session->getRoles();
@@ -169,6 +169,7 @@ class Collection extends Path
         }
     }
 
+    /** @todo move to business layer */
     public function canApproveAndReject()
     {
         $roles = $this->session->getRoles();
@@ -182,16 +183,19 @@ class Collection extends Path
         }
     }
 
+    /** @todo move to business layer */
     public function canApprove()
     {
         return $this->canApproveAndReject();
     }
 
+    /** @todo move to business layer */
     public function canReject()
     {
         return $this->canApproveAndReject();
     }
 
+    /** @todo exception handling */
     public function rename($path2)
     {
         $ret = false;
@@ -218,6 +222,7 @@ class Collection extends Path
         return $ret;
     }
 
+    /** @todo move to business layer */
     public function getState()
     {
         $coll = new Collection($this->session, $this->path);

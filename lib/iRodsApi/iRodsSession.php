@@ -15,6 +15,7 @@ class iRodsSession
 
     public function __construct($params, $storageMountPoint = null)
     {
+        //@todo make this
         $this->params = $params;
         $this->storageMountPoint = $storageMountPoint;
         if(!array_key_exists("zone", $this->params))

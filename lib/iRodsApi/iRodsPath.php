@@ -84,6 +84,7 @@ trait iRodsPath
         }
     }
 
+    /** @todo move to business logic layer */
     public function getState()
     {
         $ret = false;
@@ -153,6 +154,8 @@ trait iRodsPath
         return $acl == "read" || $acl == "write" || $acl == "own";
     }
 
+    /** @todo keep basic functionality but move
+        business logic to different layer */
     public function isUpdatable()
     {
         $state = $this->getState();
@@ -171,6 +174,8 @@ trait iRodsPath
         }
     }
 
+    /** @todo keep basic functionality but move
+        business logic to different layer */
     public function isCreatable()
     {
         $state = $this->getState();
@@ -189,6 +194,8 @@ trait iRodsPath
         }
     }
 
+    /** @todo keep basic functionality but move
+        business logic to different layer */
     public function isDeletable()
     {
         $state = $this->getState();
