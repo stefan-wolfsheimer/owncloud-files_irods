@@ -1,4 +1,14 @@
 <?php
+/**
+ * Implementation of OwnCloud StorageAdapter
+ * see \OCP\Files\Storage
+ * see https://github.com/owncloud/core/blob/v10.0.10/lib/public/Files/Storage/StorageAdapter.php
+ * see https://doc.owncloud.org/server/10.2/developer_manual/app/advanced/custom-storage-backend.html
+ *
+ * Author: Stefan Wolfsheimer stefan.wolfsheimer@surfsara.nl
+ * License: Apache License 2.0
+ *
+ */
 namespace OCA\files_irods\Storage;
 use Icewind\Streams\IteratorDirectory;
 use \OCP\Files\Storage\StorageAdapter;
@@ -6,17 +16,27 @@ use \OCA\files_irods\iRodsApi\iRodsSession;
 use \OCA\files_irods\iRodsApi\File;
 use \OCA\files_irods\iRodsApi\Collection;
 use \OCA\files_irods\iRodsApi\iRodsStreamHandler;
-use \OCA\files_irods\iRodsApi\iRodsPath;
 
-/**
- * Implements the OwnCloud StorageAdapter interface
- */
 class iRods extends StorageAdapter
 {
     public function __construct($params)
     {
+        // possiable params:
+        // "hostname":        string
+        // "port":            string
+        // "common_password": string
+        // "using_pam":       1/0
+        // "user":            string
+        // "password":        string
+        if(!array_key_exists($params, "user") || $params['user'] == '')
+        {
+            $params["user"] = \OC::$server->getUserSession()->getLoginName();
+        }
+        if(!array_key_exists($params, "password")  || $params['password'] == '')
+        {
+            $params["password"] = $params["common_password"];
+        }
         $this->irodsSession = new iRodsSession($params);
-        
     }
 
     /**
@@ -255,41 +275,6 @@ class iRods extends StorageAdapter
         else
         {
             return false;
-        }
-    }
-
-
-    private function checkRole($path, $func)
-    {
-        list($irods_rel_path, $irods_base) = $this->irodsSession->getIrodsRoot($path);
-        if($irods_rel_path === false)
-        {
-            // something went wrong
-            return false;
-        }
-        if(!$irods_base)
-        {
-            // at the root of the irods virtual folders
-            return true;
-        }
-        else
-        {
-            // inside irods
-            $irods_path = $irods_base."/".$irods_rel_path;
-            try
-            {
-                $conn = $this->irodsSession->open();
-                $role = $this->irodsSession->getRole($conn, $irods_path);
-            }
-            catch(Exception $ex)
-            {
-            }
-            finally
-            {
-                $this->irodsSession->close($conn);
-            }
-            return $func($role);
-            return ($role == 'own' || $role == 'write' || $role == 'read');
         }
     }
 
