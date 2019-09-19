@@ -1,7 +1,12 @@
 <?php
-
+/**
+ * Application entry point
+ *
+ * Author: Stefan Wolfsheimer stefan.wolfsheimer@surfsara.nl
+ * License: Apache License 2.0
+ *
+ */
 namespace OCA\files_irods\AppInfo;
-use OCP\Util;
 
 $app = new Application();
 
@@ -18,12 +23,3 @@ $app = new Application();
             'order' => 10,
         ];
 });
-
-\OC::$server->getEventDispatcher()->addListener(
-	'OCA\Files::loadAdditionalScripts',
-	function() {
-		Util::addScript('files_irods', 'irods_popup');
-        Util::addStyle('files_irods', 'irods');
-	}
-);
-
