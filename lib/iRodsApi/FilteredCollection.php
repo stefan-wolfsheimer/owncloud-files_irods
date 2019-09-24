@@ -1,4 +1,11 @@
 <?php
+/**
+ * An iRODS collection with filter on metadata
+ *
+ * Author: Stefan Wolfsheimer stefan.wolfsheimer@surfsara.nl
+ * License: Apache License 2.0
+ *
+ */
 namespace OCA\files_irods\iRodsApi;
 use OCA\files_irods\iRodsApi\iRodsSession;
 use OCA\files_irods\iRodsApi\Path;
@@ -8,31 +15,45 @@ use OCA\files_irods\iRodsApi\Collection;
 
 class FilteredCollection extends Collection
 {
-    protected $state = null;
+    protected $predicate = null;
 
-    public function __construct(iRodsSession $session, $path, $state)
+    /**
+     * @param IRodsSession $session
+     * @param string $path iRODS path
+     * @param array $predicate a map of metadata keys to values
+     */
+    public function __construct(iRodsSession $session, $path, $predicate)
     {
         parent::__construct($session, $path, $this);
-        $this->state = $state;
+        $this->predicate = $predicate;
     }
 
-    public function getState()
+    /**
+     * Return the predicate mapping
+     */
+    public function getPredicate()
     {
-        return $this->state;
+        return $this->predicate;
     }
 
+    /**
+     * Get all children that match the predicate
+     * @return array of string
+     */
     public function getChildren()
     {
         $files = [];
         $account = $this->session->getAccount();
         $dir = new \ProdsDir($account, $this->path);
+        $filter = array();
+        foreach($this->predicate as $k=>$v)
+        {
+            $filter[] = new \RODSMeta($k, $v, null, null, "=");
+        }
         $terms = array("descendantOnly" => true,
                        "recursive" => false,
-                       "metadata" => array(new \RODSMeta("IBRIDGES_STATE", $this->state,
-                                                         null, null, "=")));
-        $fileterms = array("metadata" => array(new \RODSMeta("IBRIDGES_STATE", $this->state,
-                                                             null, null, "=")));
-
+                       "metadata" => $filter);
+        $fileterms = array("metadata" => $filter);
         if($dir !== false)
         {
             try
