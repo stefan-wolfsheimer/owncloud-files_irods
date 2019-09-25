@@ -1,21 +1,27 @@
 <?php
+/**
+ * iRodsSession object
+ *
+ * Author: Stefan Wolfsheimer stefan.wolfsheimer@surfsara.nl
+ * License: Apache License 2.0
+ *
+ */
 namespace OCA\files_irods\iRodsApi;
-require_once("irods-php/src/Prods.inc.php");  //@todo configure include path
+//@todo configure include path
+require_once("irods-php/src/Prods.inc.php");
 use OCA\files_irods\iRodsApi\Path;
 use OCA\files_irods\iRodsApi\Collection;
 use OCA\files_irods\iRodsApi\Root;
+use OCP\Files\StorageNotAvailableException;
 
 class iRodsSession
 {
     public $params = null;
     private $root = null;
     private $roles = null;
-    private $storageMountPoint = null;
-    private $researchGroupName = "researcher";
 
-    public function __construct($params, $storageMountPoint = null)
+    public function __construct($params)
     {
-        //@todo make this
         $this->params = $params;
         $this->storageMountPoint = $storageMountPoint;
         if(!array_key_exists("zone", $this->params))
@@ -30,55 +36,21 @@ class iRodsSession
         {
             $this->params["auth_mode"] = "Native";
         }
+        
         $this->getRoles();
-        if(array_key_exists($this->researchGroupName, $this->roles))
+        $collections = array();
+        foreach($this->params["mount_points"] as $obj)
         {
-            $this->root = new Root($this,
-                                   [
-                                       "DropZone"=> new Collection($this,
-                                                                   $this->home()),
-                                       "Submitted"=> new FilteredCollection($this,
-                                                                            $this->home(),
-                                                                            "SUBMITTED"),
-                                       "Revised"=> new FilteredCollection($this,
-                                                                          $this->home(),
-                                                                          "REVISED"),
-                                       "Rejected"=> new FilteredCollection($this,
-                                                                           $this->home(),
-                                                                           "REJECTED"),
-                                       "Archive"=> new Collection($this, sprintf("/%s/home/public",
-                                                                                 $this->params['zone']))
-                                   ]);
+            $coll = $this->createVirtualCollection($collections, $obj);
         }
-        else if(array_key_exists("steward", $this->roles))
-        {
-            $this->root = new Root($this,
-                                   [
-                                       "Submitted"=> new FilteredHomeCollection($this,
-                                                                                $this->researchGroupName,
-                                                                                sprintf("/%s/home/%%s", $this->params['zone']) ,
-                                                                                "SUBMITTED"),
-                                       "Revised"=> new FilteredHomeCollection($this,
-                                                                              $this->researchGroupName,
-                                                                              sprintf("/%s/home/%%s", $this->params['zone']),
-                                                                              "REVISED"),
-                                       "Rejected"=> new FilteredHomeCollection($this,
-                                                                               $this->researchGroupName,
-                                                                               sprintf("/%s/home/%%s", $this->params['zone']),
-                                                                               "REJECTED"),
-                                       "Archive"=> new Collection($this, sprintf("/%s/home/public",
-                                                                                 $this->params['zone']))
-                                   ]);
-        }
-        else
-        {
-            $this->root = new Root($this, []);
-        }
+        $this->root = new Root($this, $collections);
     }
 
     public function home()
     {
-        return sprintf("/%s/home/%s", $this->params['zone'], $this->params['user']);
+        return sprintf("/%s/home/%s",
+                       $this->params['zone'],
+                       $this->params['user']);
     }
 
     public function getRoles()
@@ -153,31 +125,6 @@ class iRodsSession
     }
 
     /**
-     * Create an IRodsSession object from an owncloud path.
-     * @param string $path
-     * @return IRodsSession | false
-     */
-    public static function createFromPath($path)
-    {
-        $storageMountPoint = explode('/', ltrim($path, '/'), 2)[0];
-        $storages = \OC::$server->query('UserStoragesService');
-        $params = false;
-        foreach($storages->getStorages() as $m)
-        {
-            if(ltrim($m->getMountPoint(), '/') == $storageMountPoint)
-            {
-                $params = $m->getBackendOptions();
-                break;
-            }
-        }
-        if($params === false)
-        {
-            throw \Exception("cannot resolve path '$path'");
-        }
-        return new IRodsSession($params, $storageMountPoint);
-    }
-
-    /**
      * @return RODSAccount
      */
     public function getAccount()
@@ -208,19 +155,6 @@ class iRodsSession
         }
     }
 
-    public function getUrlToFilteredCollections()
-    {
-        $ret = array();
-        foreach($this->root->getChildCollectionMapping() as $k=>$coll)
-        {
-            if(method_exists($coll, "getState"))
-            {
-                $ret[$coll->getState()] = $this->storageMountPoint."/".$k;
-            }
-        }
-        return $ret;
-    }
-
     /**
      * Resolves the iRODS path from owncloud path
      * 
@@ -245,5 +179,80 @@ class iRodsSession
                          $irodsPath->getPath()."/".$child,
                          $irodsPath->getRootCollection());
         return $file;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Create a virtual collection from configuration object $obj
+    //
+    // add a new OCA\files_irods\iRodsApi\Collection object
+    // to array $collection if all requirements are met
+    //
+    ///////////////////////////////////////////////////////////////////////////
+    protected function createVirtualCollection(&$collections, $obj)
+    {
+        if(array_key_exists("if_group", $obj))
+        {
+            if(!array_key_exists($obj['if_group'], $this->roles))
+            {
+                // group is not allowed
+                return false;
+            }
+        }
+        if(array_key_exists("type", $obj))
+        {
+            $type = $obj['type'];
+        }
+        else
+        {
+            $type = '';
+        }
+        if(array_key_exists("path", $obj))
+        {
+            $path = str_replace (['{ZONE}',
+                                  '{USER}',
+                                  '{HOME}'],
+                                 [$this->params['zone'],
+                                  $this->params['user'],
+                                  '/'.$this->params['zone']."/home/".$this->params['user']],
+                                 $obj['path']);
+        }
+        else
+        {
+            $path = '';
+        }
+        switch($type)
+        {
+        case 'Collection':
+            $collections[$obj['name']] = new Collection($this,
+                                                        $path);
+            return true;
+            break;
+        case 'FilteredCollection':
+            $collections[$obj['name']] = new FilteredCollection($this,
+                                                                $path,
+                                                                $obj['filter']);
+            return true;
+            break;
+        case 'FilteredHomeCollection':
+            foreach($this->getUsersOfGroup($obj['group']) as $user)
+            {
+                $path = str_replace(["{ZONE}", "{USER}"],
+                                    [$this->params['zone'], $user],
+                                    $obj['path']);
+                $name = str_replace("{USER}", $user, $obj['name']);
+                $coll = new FilteredCollection($this,
+                                               $path,
+                                               $obj['filter']);
+                if($coll->acl())
+                {
+                    //at least read
+                    $collections[$name] = $coll;
+                }
+            }
+            return true;
+            break;
+        default:
+            throw StorageNotAvailableException("invalid type '$type' in configuration ".json_encode($obj));
+        }
     }
 }
