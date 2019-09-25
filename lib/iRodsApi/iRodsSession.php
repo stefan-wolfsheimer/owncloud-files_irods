@@ -12,6 +12,7 @@ require_once("irods-php/src/Prods.inc.php");
 use OCA\files_irods\iRodsApi\Path;
 use OCA\files_irods\iRodsApi\Collection;
 use OCA\files_irods\iRodsApi\Root;
+use OCA\files_irods\iRodsApi\File;
 use OCP\Files\StorageNotAvailableException;
 
 class iRodsSession
@@ -46,6 +47,9 @@ class iRodsSession
         $this->root = new Root($this, $collections);
     }
 
+    /**
+     * @return home directory of current user
+     */
     public function home()
     {
         return sprintf("/%s/home/%s",
@@ -53,6 +57,11 @@ class iRodsSession
                        $this->params['user']);
     }
 
+    /**
+     * Get iRODS groups of the current user
+     * 
+     * @return ascociative array that maps from group name to true
+     */
     public function getRoles()
     {
         if(!$this->roles)
@@ -90,6 +99,10 @@ class iRodsSession
         return $this->roles;
     }
 
+    /**
+     * @param $group string groupname
+     * @return an array with all users of the group $group
+     */
     public function getUsersOfGroup($group)
     {
         $throwex = null;
@@ -140,6 +153,9 @@ class iRodsSession
 
     /**
      * Open an iRODS connection
+     *
+     * @return RODSConn
+     * @throws RODSException
      */
     public function open()
     {
@@ -166,6 +182,12 @@ class iRodsSession
         return $this->root->resolve($path);
     }
 
+    /**
+     * Create a OCA\files_irods\iRodsApi\File object 
+     * 
+     * @param string $path OwnCloud path
+     * @return File object
+     */
     public function getNewFile($path)
     {
         $child = basename($path);
