@@ -2,6 +2,7 @@
 /**
  * MetaController
  * Controller class for editing iRODS meta data.
+ * @todo implement
  *
  * Author: Stefan Wolfsheimer stefan.wolfsheimer@surfsara.nl
  * License: Apache License 2.0
@@ -59,6 +60,7 @@ class MetaController extends Controller
      */
     public function put($path, $entries, $op)
     {
+        //@todo different verbs patch delete instead of $op
         throw new \Exception("Not implemented yet");
     }
 };
