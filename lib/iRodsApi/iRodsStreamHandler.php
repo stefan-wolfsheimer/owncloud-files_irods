@@ -1,4 +1,11 @@
 <?php
+/**
+ * iRodsSession object
+ *
+ * Author: Stefan Wolfsheimer stefan.wolfsheimer@surfsara.nl
+ * License: Apache License 2.0
+ *
+ */
 namespace OCA\files_irods\iRodsApi;
 require_once("irods-php/src/Prods.inc.php");
 

@@ -1,9 +1,18 @@
 <?php
+/**
+ * iRodsSession object
+ *
+ * Author: Stefan Wolfsheimer stefan.wolfsheimer@surfsara.nl
+ * License: Apache License 2.0
+ *
+ */
 namespace OCA\files_irods\iRodsApi;
+use OCP\Files\StorageNotAvailableException;
 use OCA\files_irods\iRodsApi\iRodsSession;
 use OCA\files_irods\iRodsApi\Path;
 use OCA\files_irods\iRodsApi\File;
 use OCA\files_irods\iRodsApi\iRodsPath;
+
 
 class Collection extends Path
 {
@@ -143,59 +152,6 @@ class Collection extends Path
         return $ret;
     }
 
-    /** @todo move to business layer */
-    public function canSubmit()
-    {
-        $roles = $this->session->getRoles();
-        if(array_key_exists("researcher", $roles) && $this->rootCollection)
-        {
-            if($this->rootCollection->getState() == "NEW" ||
-               $this->rootCollection->getState() == "REVISED")
-            {
-                $path = $this->relativePath();
-                if($path)
-                {
-                    return count(explode("/",$path))==1;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /** @todo move to business layer */
-    public function canApproveAndReject()
-    {
-        $roles = $this->session->getRoles();
-        if(array_key_exists("steward", $roles) && $this->rootCollection && $this->rootCollection->getState() == "SUBMITTED")
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /** @todo move to business layer */
-    public function canApprove()
-    {
-        return $this->canApproveAndReject();
-    }
-
-    /** @todo move to business layer */
-    public function canReject()
-    {
-        return $this->canApproveAndReject();
-    }
-
-    /** @todo exception handling */
     public function rename($path2)
     {
         $ret = false;
@@ -222,20 +178,6 @@ class Collection extends Path
         return $ret;
     }
 
-    /** @todo move to business layer */
-    public function getState()
-    {
-        $coll = new Collection($this->session, $this->path);
-        foreach($coll->getMeta() as $alu)
-        {
-            if($alu->name == "IBRIDGES_STATE")
-            {
-                return $alu->value;
-            }
-        }
-        return 'NEW';
-    }
-
     protected function getStats($conn)
     {
         return $conn->getDirStats($this->path);
@@ -252,6 +194,10 @@ class Collection extends Path
         $que_result_coll = $connLocal->genQuery(
             array("COL_COLL_INHERITANCE", "COL_COLL_NAME", "COL_COLL_OWNER_NAME", "COL_COLL_ID"),
             array(new \RODSQueryCondition("COL_COLL_NAME", $this->path)));
+        if(!$que_result_coll)
+        {
+            return null;
+        }
         $que_result_users = $connLocal->genQuery(
             array("COL_DATA_ACCESS_NAME", "COL_DATA_ACCESS_USER_ID"),
             array(new \RODSQueryCondition("COL_DATA_ACCESS_DATA_ID", $que_result_coll['COL_COLL_ID'][0])));
@@ -266,6 +212,7 @@ class Collection extends Path
                 $acl[] = ($que_result_users['COL_DATA_ACCESS_NAME'][$i] == "read object") ? "read" : $que_result_users['COL_DATA_ACCESS_NAME'][$i];
             }
         }
+        //@todo determine dynamically by user type
         if($this->session->params['user'] == "rods")
         {
             $acl[] = "read";

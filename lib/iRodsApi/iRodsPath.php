@@ -1,4 +1,11 @@
 <?php
+/**
+ * iRodsSession object
+ *
+ * Author: Stefan Wolfsheimer stefan.wolfsheimer@surfsara.nl
+ * License: Apache License 2.0
+ *
+ */
 namespace OCA\files_irods\iRodsApi;
 
 trait iRodsPath
@@ -33,6 +40,9 @@ trait iRodsPath
         return $ret;
     }
 
+    /**
+     * @return acl of Collection or File
+     */
     public function acl()
     {
         $acl = false;
@@ -71,6 +81,9 @@ trait iRodsPath
         return $ret;
     }
 
+    /**
+     * @return string path relative to root collection
+     */
     public function pathRelativeToRoot()
     {
         $prefix = $this->rootCollection->getPath();
@@ -81,55 +94,6 @@ trait iRodsPath
         else
         {
             return false;
-        }
-    }
-
-    /** @todo move to business logic layer */
-    public function getState()
-    {
-        $ret = false;
-        if($this->rootCollection)
-        {
-            $relpath = $this->pathRelativeToRoot();
-            list($first, $rest) = explode("/",$relpath,2);
-            $path = $this->rootCollection->getPath().$first;
-            try
-            {
-                $conn = $this->session->open();
-                if($conn->dirExists ($path))
-                {
-                    $p = new Collection($this->session, $path);
-                }
-                else if($conn->fileExists ($path))
-                {
-                    $p = new File($this->session, $path);
-                }
-                else
-                {
-                    throw new \Exception("invalid path $path");
-                }
-                $irodsPath = $p->getIrodsPath();
-                foreach($irodsPath->getMeta() as $alu)
-                {
-                    if($alu->name == "IBRIDGES_STATE")
-                    {
-                        $ret = $alu->value;
-                        break;
-                    }
-                }
-            }
-            catch(\Exception $ex)
-            {
-            }
-            finally
-            {
-                $this->session->close($conn);
-            }
-            return $ret;
-        }
-        else
-        {
-            return "NEW";
         }
     }
 
@@ -154,64 +118,22 @@ trait iRodsPath
         return $acl == "read" || $acl == "write" || $acl == "own";
     }
 
-    /** @todo keep basic functionality but move
-        business logic to different layer */
     public function isUpdatable()
     {
-        $state = $this->getState();
-        if($state != "NEW" && $state != "REVISED")
-        {
-            return false;
-        }
-        else
-        {
-            if($state == "REVISED" && $this->isRootContainer())
-            {
-                return false;
-            }
-            $acl = $this->acl();
-            return $acl == "write" || $acl == "own";
-        }
+        $acl = $this->acl();
+        return $acl == "write" || $acl == "own";
     }
 
-    /** @todo keep basic functionality but move
-        business logic to different layer */
     public function isCreatable()
     {
-        $state = $this->getState();
-        if($state != "NEW" && $state != "REVISED")
-        {
-            return false;
-        }
-        else
-        {
-            if($state == "REVISED" && $this->isRootContainer())
-            {
-                return false;
-            }
-            $acl = $this->acl();
-            return $acl == "write" || $acl == "own";
-        }
+        $acl = $this->acl();
+        return $acl == "write" || $acl == "own";
     }
 
-    /** @todo keep basic functionality but move
-        business logic to different layer */
     public function isDeletable()
     {
-        $state = $this->getState();
-        if($state != "NEW" && $state != "REVISED")
-        {
-            return false;
-        }
-        else
-        {
-            if($state == "REVISED" && !$this->isRootContainer())
-            {
-                return false;
-            }
-            $acl = $this->acl();
-            return $acl == "write" || $acl == "own";
-        }
+        $acl = $this->acl();
+        return $acl == "write" || $acl == "own";
     }
 
     abstract public function getMeta();

@@ -28,13 +28,23 @@ class iRods extends StorageAdapter
         // "using_pam":       1/0
         // "user":            string
         // "password":        string
-        if(!array_key_exists($params, "user") || $params['user'] == '')
+        if(!array_key_exists("user", $params) || $params['user'] == '')
         {
             $params["user"] = \OC::$server->getUserSession()->getLoginName();
         }
-        if(!array_key_exists($params, "password")  || $params['password'] == '')
+        if(array_key_exists("common_password", $params)  || $params['common_password'])
         {
             $params["password"] = $params["common_password"];
+        }
+        $config = \OC::$server->getConfig();
+        $mount_point_json = $config->getAppValue("files_irods", "irods_mount_points");
+        if(!$mount_point_json)
+        {
+            $params['mount_points'] = array();
+        }
+        else
+        {
+            $params['mount_points'] = json_decode($mount_point_json, true);
         }
         $this->irodsSession = new iRodsSession($params);
     }

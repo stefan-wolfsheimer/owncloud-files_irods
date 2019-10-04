@@ -1,4 +1,11 @@
 <?php
+/**
+ * iRodsSession object
+ *
+ * Author: Stefan Wolfsheimer stefan.wolfsheimer@surfsara.nl
+ * License: Apache License 2.0
+ *
+ */
 namespace OCA\files_irods\iRodsApi;
 use OCA\files_irods\iRodsApi\iRodsSession;
 
@@ -43,43 +50,6 @@ abstract class Path
     }
 
     public function isMetaDataEditable()
-    {
-        return false;
-    }
-
-    /** @todo move to business layer */
-    public function canEditMetaData()
-    {
-        $roles = $this->session->getRoles();
-        if(array_key_exists("researcher", $roles) && $this->rootCollection)
-        {
-
-            if($this->rootCollection->getState() == "NEW" ||
-               $this->rootCollection->getState() == "REVISED")
-            {
-                return true;
-            }
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    /** @todo move to business layer */
-    public function canSubmit()
-    {
-        return false;
-    }
-
-    /** @todo move to business layer */
-    public function canApprove()
-    {
-        return false;
-    }
-
-    /** @todo move to business layer */
-    public function canReject()
     {
         return false;
     }
