@@ -7,8 +7,7 @@
  *
  */
 namespace OCA\files_irods\iRodsApi;
-//@todo configure include path
-require_once("irods-php/src/Prods.inc.php");
+require_once("lib/irods-php/src/Prods.inc.php");
 use OCA\files_irods\iRodsApi\Path;
 use OCA\files_irods\iRodsApi\Collection;
 use OCA\files_irods\iRodsApi\Root;
