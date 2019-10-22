@@ -22,6 +22,18 @@ $application->registerRoutes($this, [
             'url' => '/api/meta/{path}',
             'verb' => 'PUT',
             'requirements' => ['path' => '.*']
+        ],
+        [
+            'name' => 'Meta#patch',
+            'url' => '/api/meta/{path}',
+            'verb' => 'PATCH',
+            'requirements' => ['path' => '.*']
+        ],
+        [
+            'name' => 'Meta#delete',
+            'url' => '/api/meta/{path}',
+            'verb' => 'DELETE',
+            'requirements' => ['path' => '.*']
         ]
     ]
 ]);

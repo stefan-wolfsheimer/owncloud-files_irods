@@ -43,11 +43,23 @@ class MetaController extends Controller
 
     /**
      * @NoAdminRequired
-     * @todo implement
      */
     public function get($path)
     {
-        throw new \Exception("Not implemented yet");
+        $session = iRodsSession::createFromPath($path);
+        $ipath =  $session->resolve($this->stripMountPoint($path));
+        $meta = [];
+        foreach($ipath->getMeta() as $m)
+        {
+            $meta[] = array("name"=>$m->name,
+                            "value"=>$m->value,
+                            "units"=>$m->units);
+        }
+        return array("path"=>$path,
+                     "ipath"=>$ipath->getPath(),
+                     "op"=>"GET",
+                     "meta"=>$meta,
+                     "params"=> $session->params);
     }
 
 
@@ -55,12 +67,71 @@ class MetaController extends Controller
      * @NoAdminRequired
      *
      * @param string $path
-     * @param array $entries
-     * @param string $op
+     * @param string $entries
      */
-    public function put($path, $entries, $op)
+    public function put($path, $entries)
     {
-        //@todo different verbs patch delete instead of $op
-        throw new \Exception("Not implemented yet");
+        $session = iRodsSession::createFromPath($path);
+        $ipath =  $session->resolve($this->stripMountPoint($path));
+        $meta = [];
+        foreach($ipath->getMeta() as $m)
+        {
+            $meta[] = array("name"=>$m->name,
+                            "value"=>$m->value,
+                            "units"=>$m->units);
+        }
+        return array("path"=>$path,
+                     "ipath"=>$ipath->getPath(),
+                     "op"=>"PUT",
+                     "meta"=>$meta,
+                     "params"=> $session->params);
+    }
+
+    /**
+     * @NoAdminRequired
+     *
+     * @param string $path
+     * @param array $entries
+     */
+    public function patch($path, $entries)
+    {
+        $session = iRodsSession::createFromPath($path);
+        $ipath =  $session->resolve($this->stripMountPoint($path));
+        $meta = [];
+        foreach($ipath->getMeta() as $m)
+        {
+            $meta[] = array("name"=>$m->name,
+                            "value"=>$m->value,
+                            "units"=>$m->units);
+        }
+        return array("path"=>$path,
+                     "ipath"=>$ipath->getPath(),
+                     "op"=>"PATCH",
+                     "meta"=>$meta,
+                     "params"=> $session->params);
+    }
+
+    /**
+     * @NoAdminRequired
+     *
+     * @param string $path
+     * @param array $entries
+     */
+    public function delete($path, $entries)
+    {
+        $session = iRodsSession::createFromPath($path);
+        $ipath =  $session->resolve($this->stripMountPoint($path));
+        $meta = [];
+        foreach($ipath->getMeta() as $m)
+        {
+            $meta[] = array("name"=>$m->name,
+                            "value"=>$m->value,
+                            "units"=>$m->units);
+        }
+        return array("path"=>$path,
+                     "ipath"=>$ipath->getPath(),
+                     "op"=>"DELETE",
+                     "meta"=>$meta,
+                     "params"=> $session->params);
     }
 };

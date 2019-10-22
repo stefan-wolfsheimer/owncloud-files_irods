@@ -48,6 +48,43 @@ class iRodsSession
     }
 
     /**
+     * Create an IRodsSession object from an owncloud path.
+     * @param string $path
+     * @return IRodsSession | false
+     */
+    public static function createFromPath($path)
+    {
+        $storageMountPoint = explode('/', ltrim($path, '/'), 2)[0];
+        $storages = \OC::$server->query('UserStoragesService');
+        $params = false;
+        foreach($storages->getStorages() as $m)
+        {
+            if(ltrim($m->getMountPoint(), '/') == $storageMountPoint)
+            {
+                $params = $m->getBackendOptions();
+                break;
+            }
+        }
+        if($params === false)
+        {
+            throw \Exception("cannot resolve path '$path'");
+        }
+        $config = \OC::$server->getConfig();
+        $mount_point_json = $config->getAppValue("files_irods",
+                                                 "irods_mount_points");
+        if(!$mount_point_json)
+        {
+            $params['mount_points'] = array();
+        }
+        else
+        {
+            $params['mount_points'] = json_decode($mount_point_json, true);
+        }
+        return new IRodsSession($params, $storageMountPoint);
+    }
+
+
+    /**
      * @return home directory of current user
      */
     public function home()
