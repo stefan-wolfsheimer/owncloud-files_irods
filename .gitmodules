@@ -1,4 +1,0 @@
-[submodule "lib/IRods/irods-php"]
-	path = lib/iRodsApi/irods-php
-        url = ../../data-management-services/utrecht.irods-php.git
-        branch = release-1.5
