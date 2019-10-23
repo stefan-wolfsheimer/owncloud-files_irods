@@ -1,0 +1,24 @@
+variables:
+  SPEC_DIR: /home/gitlab-runner/owncloud-apps
+
+before_script:
+  - echo "before"
+  - docker rm --force owncloud-files-irods-builder || echo "not running"
+
+after_script:
+  - echo "before"
+  - docker rm --force owncloud-files-irods-builder || echo "not running"
+
+stages:
+  - build
+
+build-rpm:
+  stage: build
+  tags:
+    - build
+  variables:
+    RPM: owncloud-files_irods-${CI_COMMIT_REF_NAME}-${CI_PIPELINE_ID}.noarch.rpm
+  script:
+    - docker run -v ${SPEC_DIR}:/host --name owncloud-files-irods-builder owncloud-rpm-builder rpmbuild -ba /host/SPECS/owncloud-files-irods.spec --define "version $CI_COMMIT_REF_NAME" --define "release $CI_PIPELINE_ID" --define "branch $CI_COMMIT_REF_NAME"
+    - docker cp owncloud-files-irods-builder:/home/builder/rpm/noarch/${RPM} .
+  
