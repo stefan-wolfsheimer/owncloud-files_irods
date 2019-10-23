@@ -10,10 +10,12 @@ after_script:
   - docker rm --force owncloud-files-irods-builder || echo "not running"
 
 stages:
-  - build
+  - build_rpms
+  - build_image
+  - push_image
 
 build-rpm:
-  stage: build
+  stage: build_rpms
   tags:
     - build
   variables:
@@ -21,4 +23,19 @@ build-rpm:
   script:
     - docker run -v ${SPEC_DIR}:/host --name owncloud-files-irods-builder owncloud-rpm-builder rpmbuild -ba /host/SPECS/owncloud-files-irods.spec --define "version $CI_COMMIT_REF_NAME" --define "release $CI_PIPELINE_ID" --define "branch $CI_COMMIT_REF_NAME"
     - docker cp owncloud-files-irods-builder:/home/builder/rpm/noarch/${RPM} .
+    - cp ${RPM} /home/gitlab-runner/irods-owncloud-integration/docker/owncloud-acceptance/RPM/owncloud-files_irods.noarch.rpm
   
+build-image:
+  stage: build_image
+  tags:
+    - build
+  script:
+    - cd /home/gitlab-runner/irods-owncloud-integration/docker/owncloud-acceptance
+    - docker build -t git.ia.surfsara.nl:5050/data-management-services/irods-owncloud-integration .
+
+push-image:
+  stage: push_image
+  tags:
+    - build
+  script:
+    - docker push git.ia.surfsara.nl:5050/data-management-services/irods-owncloud-integration
