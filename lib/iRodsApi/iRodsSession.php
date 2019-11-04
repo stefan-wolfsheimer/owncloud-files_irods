@@ -7,7 +7,8 @@
  *
  */
 namespace OCA\files_irods\iRodsApi;
-require_once("lib/irods-php/src/Prods.inc.php");
+require_once("/var/www/owncloud/lib/irods-php/src/Prods.inc.php");
+
 use OCA\files_irods\iRodsApi\Path;
 use OCA\files_irods\iRodsApi\Collection;
 use OCA\files_irods\iRodsApi\Root;
@@ -62,6 +63,18 @@ class iRodsSession
             {
                 $params = $m->getBackendOptions();
                 break;
+            }
+        }
+        if($params === false)
+        {
+            $storages = \OC::$server->query('GlobalStoragesService');
+            foreach($storages->getStorages() as $m)
+            {
+                if(ltrim($m->getMountPoint(), '/') == $storageMountPoint)
+                {
+                    $params = $m->getBackendOptions();
+                    break;
+                }
             }
         }
         if($params === false)
