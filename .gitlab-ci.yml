@@ -2,11 +2,9 @@ variables:
   SPEC_DIR: /home/gitlab-runner/owncloud-apps
 
 before_script:
-  - echo "before"
   - docker rm --force owncloud-files-irods-builder || echo "not running"
 
 after_script:
-  - echo "before"
   - docker rm --force owncloud-files-irods-builder || echo "not running"
 
 stages:
