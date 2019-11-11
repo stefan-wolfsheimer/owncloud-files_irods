@@ -32,7 +32,7 @@ class iRods extends StorageAdapter
         {
             $params["user"] = \OC::$server->getUserSession()->getLoginName();
         }
-        if(array_key_exists("common_password", $params)  || $params['common_password'])
+        if(array_key_exists("common_password", $params)  && $params['common_password'] !== '')
         {
             $params["password"] = $params["common_password"];
         }
