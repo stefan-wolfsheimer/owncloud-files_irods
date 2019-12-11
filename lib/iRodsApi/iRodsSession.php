@@ -24,7 +24,7 @@ class iRodsSession
     public function __construct($params)
     {
         $this->params = $params;
-        $this->storageMountPoint = $storageMountPoint;
+
         if(!array_key_exists("zone", $this->params))
         {
             $this->params["zone"] = "tempZone";
@@ -37,7 +37,10 @@ class iRodsSession
         {
             $this->params["auth_mode"] = "Native";
         }
-        
+        if(array_key_exists("using_pam", $this->params) && $this->params["using_pam"])
+        {
+            $this->params["auth_mode"] = "PAM";
+        }
         $this->getRoles();
         $collections = array();
         foreach($this->params["mount_points"] as $obj)
