@@ -17,11 +17,24 @@ use OCA\files_irods\iRodsApi\Path;
 class Root extends Path
 {
     private $subpaths;
+    private $mergedSubpaths;
 
     public function __construct(iRodsSession $session, Array $subpaths)
     {
-        parent::__construct($session, "");
+        parent::__construct($session,
+                            array_key_exists("", $subpaths) ? $path = $subpaths[""]->getPath() : "");
+        $this->mergedSubpath = null;
+        if(array_key_exists("", $subpaths))
+        {
+            $this->mergedSubpath = $subpaths[""];
+            unset($subpaths[""]);
+        }
         $this->subpaths = $subpaths;
+    }
+
+    public function getRootCollection()
+    {
+        return $this;
     }
 
     public function stat()
@@ -33,12 +46,12 @@ class Root extends Path
 
     public function getChildren()
     {
-        return array_keys($this->subpaths);
-    }
-
-    public function getChildCollectionMapping()
-    {
-        return $this->subpaths;
+        $ret = array_keys($this->subpaths);
+        if($this->mergedSubpath)
+        {
+            $ret = array_merge($ret, $this->mergedSubpath->getChildren());
+        }
+        return $ret;
     }
 
     public function filetype()
@@ -48,18 +61,25 @@ class Root extends Path
 
     public function resolve($path, $root=null)
     {
-        $chunks = explode("/", $path, 2);
-        if(array_key_exists($chunks[0], $this->subpaths))
+        if($path == "" || $path == ".")
         {
-            if(count($chunks) < 2)
-            {
-                $chunks[] = "";
-            }
-            return $this->subpaths[$chunks[0]]->resolve($chunks[1]);
+            return $this;
         }
         else
         {
-            return $this;
+            $chunks = explode("/", $path, 2);
+            if(array_key_exists($chunks[0], $this->subpaths))
+            {
+                if(count($chunks) < 2)
+                {
+                    $chunks[] = "";
+                }
+                return $this->subpaths[$chunks[0]]->resolve($chunks[1]);
+            }
+            else if($this->mergedSubpath)
+            {
+                return $this->mergedSubpath->resolve($path, $root);
+            }
         }
     }
 
@@ -68,8 +88,52 @@ class Root extends Path
         return true;
     }
 
+    public function isUpdatable()
+    {
+        if($this->mergedSubpath)
+        {
+            return $this->mergedSubpath->isUpdatable();
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public function isCreatable()
+    {
+        if($this->mergedSubpath)
+        {
+            return $this->mergedSubpath->isCreatable();
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public function mkdir($name)
+    {
+        if($this->mergedSubpath)
+        {
+            return $this->mergedSubpath->mkdir($name);
+        }
+        else
+        {
+            return false;
+        }
+
+    }
+
     protected function getIrodsPath()
     {
-        return false;
+        if($this->mergedSubpath)
+        {
+            $this->mergedSubpath->getIrodsPath();
+        }
+        else
+        {
+            return false;
+        }
     }
 };

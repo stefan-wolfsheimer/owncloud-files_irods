@@ -245,14 +245,17 @@ class iRodsSession
         $child = basename($path);
         $path = dirname($path);
         $irodsPath = $this->resolve($path);
-        if(!($irodsPath instanceof Collection))
+        if(($irodsPath instanceof Collection) || ($irodsPath instanceof Root))
+        {
+            $file = new File($this,
+                             $irodsPath->getPath()."/".$child,
+                             $irodsPath->getRootCollection());
+            return $file;
+        }
+        else
         {
             return false;
         }
-        $file = new File($this,
-                         $irodsPath->getPath()."/".$child,
-                         $irodsPath->getRootCollection());
-        return $file;
     }
 
     ///////////////////////////////////////////////////////////////////////////

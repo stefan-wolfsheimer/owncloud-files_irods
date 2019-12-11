@@ -80,7 +80,7 @@ class iRods extends StorageAdapter
         $child = basename($path);
         $path = dirname($path);
         $collection = $this->irodsSession->resolve($path);
-        if($collection && $collection instanceof Collection)
+        if($collection && method_exists($collection,  "mkdir"))
         {
             return $collection->mkdir($child);
         }

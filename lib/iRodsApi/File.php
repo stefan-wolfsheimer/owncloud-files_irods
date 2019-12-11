@@ -15,7 +15,7 @@ class File extends Path
 {
     use iRodsPath;
 
-    
+
     public function __construct(iRodsSession $session, $path, $root)
     {
         parent::__construct($session, $path);
@@ -74,12 +74,16 @@ class File extends Path
 
     public function url()
     {
-        return sprintf("irods://%s:%s@%s:%d/%s",
-                       $this->session->params['user'],
-                       $this->session->params['password'],
-                       $this->session->params['hostname'],
-                       $this->session->params['port'],
-                       $this->path);
+        $ret = sprintf("irods://%s:%s@%s:%d/%s/%s",
+                       urlencode($this->session->params['user']."#".
+                                 $this->session->params['zone']."#".
+                                 $this->session->params['auth_mode']),
+                       urlencode($this->session->params['password']),
+                       urlencode($this->session->params['hostname']),
+                       urlencode($this->session->params['port']),
+                       urlencode($this->session->params['resc']),
+                       urlencode($this->path));
+        return $ret;
     }
 
     protected function getStats($conn)
@@ -138,7 +142,7 @@ class File extends Path
                 $acl[] = ($que_result['COL_DATA_ACCESS_NAME'][$i] == "read object") ? "read" : $que_result['COL_DATA_ACCESS_NAME'][$i];
             }
         }
-        if($this->irods_params['user'] == "rods")
+        if($this->session->params['user'] == "rods") // @todo: remove hard coded user name
         {
             $acl[] = "read";
         }

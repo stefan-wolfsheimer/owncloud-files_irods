@@ -25,26 +25,6 @@ class Collection extends Path
         $this->rootCollection = $root;
     }
 
-    /**
-     * relative path to root collection
-     */
-    public function relativePath()
-    {
-        if(!$this->rootCollection)
-        {
-            return false;
-        }
-        $rootpath = $this->rootCollection->getPath();
-        if(substr($this->path, 0, strlen($rootpath)) == $rootpath)
-        {
-            return trim(substr($this->path, strlen($rootpath)),"/");
-        }
-        else
-        {
-            return false;
-        }
-    }
-
     public function getChildren()
     {
 

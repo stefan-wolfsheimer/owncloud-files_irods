@@ -26,19 +26,34 @@ class iRodsStreamHandler {
         }
     }
 
+    private function getRescPath($path)
+    {
+        if(preg_match ('|^\\/(.*?)\\/(.*?)$|', $path, $matches))
+        {
+            return [$matches[1], $matches[2]];
+        }
+        else
+        {
+            return ["", ""];
+        }
+    }
+
     function stream_open($path, $mode, $options, &$opened_path)
     {
         $url = parse_url($path);
+        list($this->irods_user,
+             $this->irods_zone,
+             $this->irods_auth_mode) = explode("#", urldecode($url['user']));
+        list($this->irods_resc,
+             $this->irods_path) = $this->getRescPath(urldecode($url['path']));
+        $this->irods_host = urldecode($url['host']);
         $this->irods_port = array_key_exists('port', $url) ? $url['port'] : 1247;
-        $this->irods_path = $url['path'];
         $this->irods_mode = $mode;
-        $this->irods_zone = "tempZone";
-        $this->irods_resc = "demoResc"; // @todo make it part of url
-        $this->irods_auth_mode = "Native";
-        $this->irods_account = new \RODSAccount($url['host'],
+        $this->irods_password = urldecode($url['pass']);
+        $this->irods_account = new \RODSAccount($this->irods_host,
                                                 $this->irods_port,
-                                                $url['user'],
-                                                $url['pass'],
+                                                $this->irods_user,
+                                                $this->irods_password,
                                                 $this->irods_zone,
                                                 $this->irods_resc,
                                                 $this->irods_auth_mode);
