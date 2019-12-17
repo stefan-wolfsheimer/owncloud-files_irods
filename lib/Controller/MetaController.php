@@ -21,6 +21,31 @@ class MetaController extends Controller
     }
 
     /**
+     * @NoAdminRequired
+     */
+    public function getMountPoints()
+    {
+        $storages = \OC::$server->query('UserStoragesService');
+        $mp = [];
+        foreach($storages->getStorages() as $m)
+        {
+            if($m->getBackend() instanceof \OCA\files_irods\Backend\iRods)
+            {
+                $mp[] = $m->getMountPoint();
+            }
+        }
+        $storages = \OC::$server->query('UserGlobalStoragesService');
+        foreach($storages->getStorages() as $m)
+        {
+            if($m->getBackend() instanceof \OCA\files_irods\Backend\iRods)
+            {
+                $mp[] = $m->getMountPoint();
+            }
+        }
+        return array("mount_points"=>$mp);
+    }
+
+    /**
      * removes first part of the path
      * example: $path = /iRODS/path/to/my/file.txt
      *          return path/to/my/file.txt

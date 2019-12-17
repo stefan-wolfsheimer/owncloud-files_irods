@@ -12,6 +12,11 @@ $application = new Application();
 $application->registerRoutes($this, [
     'routes' => [
         [
+            'name' => 'Meta#getmountpoints',
+            'url' => '/api/mountpoints',
+            'verb' => 'GET'
+        ],
+        [
             'name' => 'Meta#get',
             'url' => '/api/meta/{path}',
             'verb' => 'GET',
