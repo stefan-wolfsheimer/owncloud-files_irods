@@ -60,26 +60,32 @@ class iRodsSession
         $storageMountPoint = explode('/', ltrim($path, '/'), 2)[0];
         $storages = \OC::$server->query('UserStoragesService');
         $params = false;
+        $storage = null;
         foreach($storages->getStorages() as $m)
         {
             if(ltrim($m->getMountPoint(), '/') == $storageMountPoint)
             {
-                $params = $m->getBackendOptions();
+                $storage = $m;
                 break;
             }
         }
-        if($params === false)
+        if($storage === null)
         {
             $storages = \OC::$server->query('GlobalStoragesService');
             foreach($storages->getStorages() as $m)
             {
                 if(ltrim($m->getMountPoint(), '/') == $storageMountPoint)
                 {
-                    $params = $m->getBackendOptions();
+                    $storage = $m;
                     break;
                 }
             }
         }
+        if($storage === null)
+        {
+            throw \Exception("cannot resolve path '$path'");
+        }
+        $params = $m->getBackendOptions();
         if($params === false)
         {
             throw \Exception("cannot resolve path '$path'");

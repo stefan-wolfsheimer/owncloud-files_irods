@@ -129,7 +129,7 @@ class Root extends Path
     {
         if($this->mergedSubpath)
         {
-            $this->mergedSubpath->getIrodsPath();
+            return $this->mergedSubpath->getIrodsPath();
         }
         else
         {
