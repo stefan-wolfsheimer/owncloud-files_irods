@@ -127,7 +127,23 @@ abstract class Path
             {
                 return false;
             }
-            $p->addMeta(new \RODSMeta($field, $value));
+            $meta = $p->getMeta();
+            if(count($meta) == 0)
+            {
+                $p->addMeta(new \RODSMeta($field, $value));
+            }
+            else if(count($meta) == 1)
+            {
+                $p->updateMeta($meta[0], new \RODSMeta($field, $value));
+            }
+            else
+            {
+                foreach($meta as $m)
+                {
+                    $p->rmMeta($m);
+                }
+                $p->addMeta(new \RODSMeta($field, $value));
+            }
             return true;
         }
         catch(Exception $ex)
