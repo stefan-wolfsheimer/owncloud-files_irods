@@ -86,4 +86,15 @@ class FilteredCollection extends Collection
         }
         return $files;
     }
+
+    public function isCreatable()
+    {
+        return false;
+    }
+
+    public function isDeletable()
+    {
+        return false;
+    }
+
 }
