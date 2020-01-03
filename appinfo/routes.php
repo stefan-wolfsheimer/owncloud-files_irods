@@ -15,30 +15,6 @@ $application->registerRoutes($this, [
             'name' => 'Meta#getmountpoints',
             'url' => '/api/mountpoints',
             'verb' => 'GET'
-        ],
-        [
-            'name' => 'Meta#get',
-            'url' => '/api/meta/{path}',
-            'verb' => 'GET',
-            'requirements' => ['path' => '.*']
-        ],
-        [
-            'name' => 'Meta#put',
-            'url' => '/api/meta/{path}',
-            'verb' => 'PUT',
-            'requirements' => ['path' => '.*']
-        ],
-        [
-            'name' => 'Meta#patch',
-            'url' => '/api/meta/{path}',
-            'verb' => 'PATCH',
-            'requirements' => ['path' => '.*']
-        ],
-        [
-            'name' => 'Meta#delete',
-            'url' => '/api/meta/{path}',
-            'verb' => 'DELETE',
-            'requirements' => ['path' => '.*']
         ]
     ]
 ]);
