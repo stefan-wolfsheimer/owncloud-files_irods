@@ -131,7 +131,8 @@ abstract class Path
             foreach($meta as $m)
             {
                 if($m->name == $field) {
-                    $p->updateMeta($field, new \RODSMeta($field, $value));
+                    $p->rmMeta($m);
+                    $p->addMeta(new \RODSMeta($field, $value));
                     return true;
                 }
             }
