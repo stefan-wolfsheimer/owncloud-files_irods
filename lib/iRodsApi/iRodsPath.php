@@ -127,13 +127,13 @@ trait iRodsPath
     public function isCreatable()
     {
         $acl = $this->acl();
-        return $acl == "write" || $acl == "own";
+        return $acl == "own";
     }
 
     public function isDeletable()
     {
         $acl = $this->acl();
-        return $acl == "write" || $acl == "own";
+        return $acl == "own";
     }
 
     abstract public function getMeta();

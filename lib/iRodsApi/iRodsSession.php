@@ -101,7 +101,15 @@ class iRodsSession
         {
             $params['mount_points'] = json_decode($mount_point_json, true);
         }
-        return new IRodsSession($params, $storageMountPoint);
+        if(!array_key_exists("user", $params) || $params['user'] == '')
+        {
+            $params["user"] = \OC::$server->getUserSession()->getLoginName();
+        }
+        if(array_key_exists("common_password", $params)  && $params['common_password'] !== '')
+        {
+            $params["password"] = $params["common_password"];
+        }
+        return new iRodsSession($params, $storageMountPoint);
     }
 
 

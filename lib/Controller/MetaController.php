@@ -13,6 +13,11 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
 use OCA\files_irods\iRodsApi\iRodsSession;
 
+function compare_mount_points($a, $b)
+{
+    return -strcmp($a['name'], $b['name']);
+}
+
 class MetaController extends Controller
 {
     public function __construct($AppName, $request)
@@ -42,121 +47,35 @@ class MetaController extends Controller
                 $mp[] = $m->getMountPoint();
             }
         }
-        return array("mount_points"=>$mp);
-    }
-
-    /**
-     * removes first part of the path
-     * example: $path = /iRODS/path/to/my/file.txt
-     *          return path/to/my/file.txt
-     *
-     * @param string $path 
-     * @return string
-     */
-    public function stripMountPoint($path)
-    {
-        $tmp = explode('/', ltrim($path, '/'), 2);
-        if(count($tmp) > 1)
+        $config = \OC::$server->getConfig();
+        $mount_point_json = $config->getAppValue("files_irods", "irods_mount_points");
+        if(!$mount_point_json)
         {
-            return $tmp[1];
+            $mount_points = array();
         }
         else
         {
-            return "";
+            $mount_points = json_decode($mount_point_json, true);
         }
-    }
-
-    /**
-     * @NoAdminRequired
-     */
-    public function get($path)
-    {
-        $session = iRodsSession::createFromPath($path);
-        $ipath =  $session->resolve($this->stripMountPoint($path));
-        $meta = [];
-        foreach($ipath->getMeta() as $m)
+        $ret = [];
+        foreach($mp as $rootdir)
         {
-            $meta[] = array("name"=>$m->name,
-                            "value"=>$m->value,
-                            "units"=>$m->units);
+            $copy = $mount_points;
+            foreach($copy as &$m)
+            {
+                if($m['name'])
+                {
+                    $m['name'] = $rootdir."/".$m['name']."/";
+                }
+                else
+                {
+                    $m['name'] = $rootdir."/";
+                }
+                $ret[] = $m;
+            }
         }
-        return array("path"=>$path,
-                     "ipath"=>$ipath->getPath(),
-                     "op"=>"GET",
-                     "meta"=>$meta,
-                     "params"=> $session->params);
-    }
-
-
-    /**
-     * @NoAdminRequired
-     *
-     * @param string $path
-     * @param string $entries
-     */
-    public function put($path, $entries)
-    {
-        $session = iRodsSession::createFromPath($path);
-        $ipath =  $session->resolve($this->stripMountPoint($path));
-        $meta = [];
-        foreach($ipath->getMeta() as $m)
-        {
-            $meta[] = array("name"=>$m->name,
-                            "value"=>$m->value,
-                            "units"=>$m->units);
-        }
-        return array("path"=>$path,
-                     "ipath"=>$ipath->getPath(),
-                     "op"=>"PUT",
-                     "meta"=>$meta,
-                     "params"=> $session->params);
-    }
-
-    /**
-     * @NoAdminRequired
-     *
-     * @param string $path
-     * @param array $entries
-     */
-    public function patch($path, $entries)
-    {
-        $session = iRodsSession::createFromPath($path);
-        $ipath =  $session->resolve($this->stripMountPoint($path));
-        $meta = [];
-        foreach($ipath->getMeta() as $m)
-        {
-            $meta[] = array("name"=>$m->name,
-                            "value"=>$m->value,
-                            "units"=>$m->units);
-        }
-        return array("path"=>$path,
-                     "ipath"=>$ipath->getPath(),
-                     "op"=>"PATCH",
-                     "meta"=>$meta,
-                     "params"=> $session->params);
-    }
-
-    /**
-     * @NoAdminRequired
-     *
-     * @param string $path
-     * @param array $entries
-     */
-    public function delete($path, $entries)
-    {
-        $session = iRodsSession::createFromPath($path);
-        $ipath =  $session->resolve($this->stripMountPoint($path));
-        $meta = [];
-        foreach($ipath->getMeta() as $m)
-        {
-            $meta[] = array("name"=>$m->name,
-                            "value"=>$m->value,
-                            "units"=>$m->units);
-        }
-        return array("path"=>$path,
-                     "ipath"=>$ipath->getPath(),
-                     "op"=>"DELETE",
-                     "meta"=>$meta,
-                     "params"=> $session->params);
+        usort($ret,
+              'OCA\\files_irods\\Controller\\compare_mount_points');
+        return array("mount_points"=>$ret);
     }
 };

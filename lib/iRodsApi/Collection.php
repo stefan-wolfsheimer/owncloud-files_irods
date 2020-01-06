@@ -170,32 +170,39 @@ class Collection extends Path
 
     protected function getAcl($connLocal)
     {
-        $acl = [];
         $que_result_coll = $connLocal->genQuery(
-            array("COL_COLL_INHERITANCE", "COL_COLL_NAME", "COL_COLL_OWNER_NAME", "COL_COLL_ID"),
+            array("COL_COLL_OWNER_NAME", "COL_COLL_OWNER_ZONE", "COL_COLL_ID"),
             array(new \RODSQueryCondition("COL_COLL_NAME", $this->path)));
         if(!$que_result_coll)
         {
             return null;
         }
-        $que_result_users = $connLocal->genQuery(
+        // get user ids and group ids
+        $user_groups = $connLocal->genQuery(
+            array("COL_USER_ID", "COL_USER_NAME", "COL_USER_GROUP_ID", "COL_USER_ZONE"),
+            array(new \RODSQueryCondition("COL_USER_NAME", $this->session->params['user']),
+                  new \RODSQueryCondition("COL_USER_ZONE", $this->session->params['zone'])));
+        $user_ids = $user_groups["COL_USER_GROUP_ID"];
+
+        $que_result_access = $connLocal->genQuery(
             array("COL_DATA_ACCESS_NAME", "COL_DATA_ACCESS_USER_ID"),
             array(new \RODSQueryCondition("COL_DATA_ACCESS_DATA_ID", $que_result_coll['COL_COLL_ID'][0])));
-        
-        for($i=0; $i<sizeof($que_result_users["COL_DATA_ACCESS_USER_ID"]);$i++) {
-            $que_result_user_info = $connLocal->genQuery(
-                array("COL_USER_NAME", "COL_USER_ZONE"),
-                array(new \RODSQueryCondition("COL_USER_ID", $que_result_users["COL_DATA_ACCESS_USER_ID"][$i])));
-            if($que_result_user_info['COL_USER_NAME'][0] == $this->session->params['user'] &&
-               $que_result_user_info['COL_USER_ZONE'][0] == $this->session->params['zone'])
+        $acl = [];
+        for($i=0; $i<sizeof($que_result_access["COL_DATA_ACCESS_USER_ID"]);$i++)
+        {
+            if(in_array($que_result_access["COL_DATA_ACCESS_USER_ID"][$i], $user_ids))
             {
-                $acl[] = ($que_result_users['COL_DATA_ACCESS_NAME'][$i] == "read object") ? "read" : $que_result_users['COL_DATA_ACCESS_NAME'][$i];
+                $acc_name = $que_result_access['COL_DATA_ACCESS_NAME'][$i];
+                if($acc_name == "modify object") $acc_name = "write";
+                elseif($acc_name == "read object") $acc_name = "read";
+                $acl[] = $acc_name;
             }
         }
-        //@todo determine dynamically by user type
-        if($this->session->params['user'] == "rods")
+        if(!in_array("own", $acl) &&
+           $que_result_coll['COL_COLL_OWNER_ZONE'][0] == $this->session->params['zone'] &&
+           $que_result_coll['COL_COLL_OWNER_NAME'][0] == $this->session->params['user'])
         {
-            $acl[] = "read";
+            $acl[] = "own";
         }
         return $acl;
     }
