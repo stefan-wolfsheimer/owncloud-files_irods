@@ -83,12 +83,12 @@ class iRodsSession
         }
         if($storage === null)
         {
-            throw \Exception("cannot resolve path '$path'");
+            throw new \Exception("cannot resolve path '$path'");
         }
         $params = $m->getBackendOptions();
         if($params === false)
         {
-            throw \Exception("cannot resolve path '$path'");
+            throw new \Exception("cannot resolve path '$path'");
         }
         $config = \OC::$server->getConfig();
         $mount_point_json = $config->getAppValue("files_irods",
