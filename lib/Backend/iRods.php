@@ -39,6 +39,8 @@ class iRods extends Backend {
                                          'Hostname')),
 				(new DefinitionParameter('port',
                                          'Port')),
+                (new DefinitionParameter('zone',
+                                         'Zone')),
                 (new DefinitionParameter('common_password',
                                          'Common Password'))
                 ->setType(DefinitionParameter::VALUE_PASSWORD)
