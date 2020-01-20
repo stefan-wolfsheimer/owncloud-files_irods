@@ -130,17 +130,29 @@ abstract class Path
             $meta = $p->getMeta();
             foreach($meta as $m)
             {
-                if($m->name == $field) {
-                    $p->rmMeta($m);
-                    $p->addMeta(new \RODSMeta($field, $value));
-                    return true;
+                if($m->name == $field)
+                {
+                    $res = $p->rmMeta($m);
                 }
             }
-            $p->addMeta(new \RODSMeta($field, $value));
+            try
+            {
+                // @todo: this throws exception even though the data was tasneem.
+                // See bug RDM-195
+                $p->addMeta(new \RODSMeta($field, $value));
+            }
+            catch(\Exception $ex)
+            {
+            }
+            finally
+            {
+            }
             return true;
         }
-        catch(Exception $ex)
+        catch(\Exception $ex)
         {
+            error_log("failed ".$ex->getMessage());
+            return false;
         }
         finally
         {
