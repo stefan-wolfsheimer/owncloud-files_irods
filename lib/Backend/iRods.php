@@ -49,8 +49,6 @@ class iRods extends Backend {
                                          'PAM Auth'))
                 ->setType(DefinitionParameter::VALUE_BOOLEAN)])
 			->addAuthScheme(AuthMechanism::SCHEME_PASSWORD)
-            ->addAuthScheme(AuthMechanism::SCHEME_BUILTIN)
-            ->addAuthScheme(AuthMechanism::SCHEME_OAUTH1)
-            ->addAuthScheme(AuthMechanism::SCHEME_OAUTH2);
+            ->addAuthScheme(AuthMechanism::SCHEME_BUILTIN);
 	}
 };
