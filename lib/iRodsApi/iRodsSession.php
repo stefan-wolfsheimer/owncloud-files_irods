@@ -20,6 +20,7 @@ class iRodsSession
     public $params = null;
     private $root = null;
     private $roles = null;
+    private $conn = null;
 
     public function __construct($params)
     {
@@ -50,6 +51,16 @@ class iRodsSession
         $this->root = new Root($this, $collections);
     }
 
+    public function __destruct()
+    {
+        if($this->conn !== null)
+        {
+            \RODSConnManager::releaseConn($this->conn);
+            $this->conn = null;
+        }
+    }
+
+    
     /**
      * Create an IRodsSession object from an owncloud path.
      * @param string $path
@@ -225,16 +236,16 @@ class iRodsSession
      */
     public function open()
     {
-        $account = $this->getAccount();
-        return \RODSConnManager::getConn($account);
+        if($this->conn === null)
+        {
+            $account = $this->getAccount();
+            $this->conn = \RODSConnManager::getConn($account);
+        }
+        return $this->conn;
     }
 
     public function close($conn)
     {
-        if($conn)
-        {
-            \RODSConnManager::releaseConn($conn);
-        }
     }
 
     /**

@@ -18,7 +18,6 @@ class Collection extends Path
 {
     use iRodsPath;
 
-    
     public function __construct(iRodsSession $session, $path, $root=null)
     {
         parent::__construct($session, $path);
@@ -124,6 +123,8 @@ class Collection extends Path
         }
         catch(Exception $ex)
         {
+            error_log($ex->getMessage());
+            $ret = false;
         }
         finally
         {

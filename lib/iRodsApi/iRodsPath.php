@@ -11,6 +11,8 @@ namespace OCA\files_irods\iRodsApi;
 trait iRodsPath
 {
     protected $rootCollection = null;
+    protected $acls = null;
+    protected $stats = null;
 
     public function getRootCollection()
     {
@@ -19,6 +21,10 @@ trait iRodsPath
 
     public function stat()
     {
+        if($this->stats != null)
+        {
+            return $this->stats;
+        }
         $ret = false;
         try
         {
@@ -37,6 +43,7 @@ trait iRodsPath
         {
             $this->session->close($conn);
         }
+        $this->stats = $ret;
         return $ret;
     }
 
@@ -45,6 +52,10 @@ trait iRodsPath
      */
     public function acl()
     {
+        if($this->acls !== null)
+        {
+            return $this->acls;
+        }
         $acl = false;
         try
         {
@@ -67,7 +78,8 @@ trait iRodsPath
         {
             if($item == "own")
             {
-                return "own";
+                $ret = "own";
+                break;
             }
             else if(!$ret)
             {
@@ -78,6 +90,7 @@ trait iRodsPath
                 $ret = "write";
             }
         }
+        $this->acls = $ret;
         return $ret;
     }
 
