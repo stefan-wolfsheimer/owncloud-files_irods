@@ -17,6 +17,7 @@ use OCA\files_irods\iRodsApi\iRodsPath;
 class Collection extends Path
 {
     use iRodsPath;
+    protected $deleted = false;
 
     public function __construct(iRodsSession $session, $path, $root=null)
     {
@@ -52,6 +53,10 @@ class Collection extends Path
 
     public function filetype()
     {
+        if($this->deleted)
+        {
+            return false;
+        }
         return "dir";
     }
 
@@ -69,6 +74,7 @@ class Collection extends Path
         {
             $ret = false;
             $path = $this->path."/".$path;
+            \OC::$server->getLogger()->debug("Collection path $path");
             try
             {
                 $conn = $this->session->open();
@@ -129,6 +135,10 @@ class Collection extends Path
         finally
         {
             $this->session->close($conn);
+        }
+        if($ret)
+        {
+            $this->deleted = true;
         }
         return $ret;
     }

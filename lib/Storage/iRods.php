@@ -44,6 +44,10 @@ class iRods extends StorageAdapter
         $mount_point_json = $config->getAppValue("files_irods", "irods_mount_points");
         if(!$mount_point_json)
         {
+            throw new \Exception('empty mount point configuration');
+        }
+        if(!$mount_point_json)
+        {
             $params['mount_points'] = array();
         }
         else
@@ -53,18 +57,27 @@ class iRods extends StorageAdapter
         $this->irodsSession = new iRodsSession($params);
         $this->logger = \OC::$server->getLogger();
         $this->irodsPaths = array();
+        $this->deleted = array();
     }
 
     private function resolve($path)
     {
         if(array_key_exists ($path, $this->irodsPaths))
         {
-            return $this->irodsPaths[$path];
+            $ret = $this->irodsPaths[$path];
+            $this->logger->debug("get irodsPath from cache $path -- ".$ret->getPath());
+            return $ret;
         }
         else
         {
             $ret = $this->irodsSession->resolve($path);
+            if(!$ret)
+            {
+                $this->logger->error('cannot resolve '.$path);
+                return false;
+            }
             $this->irodsPaths[$path] = $ret;
+            $this->logger->debug("resolve irods path $path -- ".$ret->getPath());
             return $ret;
         }
     }
@@ -129,7 +142,6 @@ class iRods extends StorageAdapter
             $ret = $collection->rmdir();
         }
         $this->logger->debug("rmdir $path ".(!$ret ? "FAILED":"OK"));
-        return false;
         return $ret;
     }
 
@@ -189,7 +201,7 @@ class iRods extends StorageAdapter
         $irodsPath = $this->resolve($path);
         if($irodsPath === false)
         {
-            $this->logger->debug("filetype $path FAILED ".spl_object_hash($this));
+            $this->logger->debug("filetype $path FAILED ");
             return false;
         }
         else
@@ -248,7 +260,7 @@ class iRods extends StorageAdapter
 	 */
     public function fopen($path, $mode)
     {
-        $file = $this->resolve($path);
+        $file = $this->irodsSession->getNewFile($path);
         if(!$file)
         {
             $this->logger->debug("fopen $path $mode FAILED");
@@ -310,8 +322,8 @@ class iRods extends StorageAdapter
     public function rename($path1, $path2)
     {
         $ret = false;
-        $file1 = $this->resolve($path1);
-        $file2 = $this->resolve($path2);
+        $file1 = $this->irodsSession->getNewFile($path1);
+        $file2 = $this->irodsSession->getNewFile($path2);
         if($file1 instanceof File && $file2 instanceof File)
         {
             $ret = $file1->rename($file2);
@@ -360,7 +372,7 @@ class iRods extends StorageAdapter
         $irodsPath = $this->resolve($path);
         if($irodsPath === false)
         {
-            $this->logger->fatal("isCreatable $path not resolvable");
+            $this->logger->error("isCreatable $path not resolvable");
             return false;
         }
         else

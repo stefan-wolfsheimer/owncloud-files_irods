@@ -78,6 +78,8 @@ class Root extends Path
             }
             else if($this->mergedSubpath)
             {
+                \OC::$server->getLogger()->debug("resolve mergedSubpath $path $root ".get_class($this->mergedSubpath));
+
                 return $this->mergedSubpath->resolve($path, $root);
             }
         }
