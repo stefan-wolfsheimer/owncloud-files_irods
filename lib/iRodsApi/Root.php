@@ -21,8 +21,9 @@ class Root extends Path
 
     public function __construct(iRodsSession $session, Array $subpaths)
     {
-        parent::__construct($session,
-                            array_key_exists("", $subpaths) ? $path = $subpaths[""]->getPath() : "");
+        $path = array_key_exists("", $subpaths) ? $subpaths[""]->getPath() : "";
+        parent::__construct($session, $path);
+
         $this->mergedSubpath = null;
         if(array_key_exists("", $subpaths))
         {
