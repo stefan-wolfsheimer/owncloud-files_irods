@@ -76,6 +76,12 @@ class MetaController extends Controller
         }
         usort($ret,
               'OCA\\files_irods\\Controller\\compare_mount_points');
+        foreach($ret as &$mp)
+        {
+            $session = iRodsSession::createFromPath($mp['name']);
+            $roles = $session->getRoles();
+            $mp['groups'] = array_keys($session->getRoles());
+        }
         return array("mount_points"=>$ret);
     }
 };
