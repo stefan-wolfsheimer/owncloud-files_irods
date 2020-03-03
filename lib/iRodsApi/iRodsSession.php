@@ -283,6 +283,24 @@ class iRodsSession
         }
     }
 
+    public function getNewCollection($path)
+    {
+        $child = basename($path);
+        $path = dirname($path);
+        $irodsPath = $this->resolve($path);
+        if(($irodsPath instanceof Collection) || ($irodsPath instanceof Root))
+        {
+            $file = new Collection($this,
+                                   $irodsPath->getPath()."/".$child,
+                                   $irodsPath->getRootCollection());
+            return $file;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     // Create a virtual collection from configuration object $obj
     //

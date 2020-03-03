@@ -143,11 +143,10 @@ class Collection extends Path
         return $ret;
     }
 
-    public function rename($path2)
+    public function rename($target)
     {
         $ret = false;
-        $target = $this->session->resolveCollection($path2);
-        if($target === false)
+        if(!($target instanceof Collection))
         {
             return false;
         }

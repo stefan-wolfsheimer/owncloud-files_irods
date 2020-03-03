@@ -322,12 +322,34 @@ class iRods extends StorageAdapter
     public function rename($path1, $path2)
     {
         $ret = false;
-        $file1 = $this->irodsSession->getNewFile($path1);
-        $file2 = $this->irodsSession->getNewFile($path2);
-        if($file1 instanceof File && $file2 instanceof File)
+        $file1 = $this->resolve($path1);
+        if($file1 instanceof File)
         {
-            $ret = $file1->rename($file2);
-            $this->logger->debug("rename $path1 $path2 ".($ret ? "TRUE":"FALSE"));
+            $file2 = $this->resolve($path2);
+            if($file2)
+            {
+                $this->logger->error("rename $path1 $path2 already exists");
+            }
+            else
+            {
+                $file2 = $this->irodsSession->getNewFile($path2);
+                $ret = $file1->rename($file2);
+                $this->logger->debug("rename $path1 $path2 ".($ret ? "TRUE":"FALSE"));
+            }
+        }
+        else if($file1 instanceof Collection)
+        {
+            $file2 = $this->resolve($path2);
+            if($file2)
+            {
+                $this->logger->error("rename $path1 $path2 already exists");
+            }
+            else
+            {
+                $file2 = $this->irodsSession->getNewCollection($path2);
+                $ret = $file1->rename($file2);
+                $this->logger->debug("rename $path1 $path2 ".($ret ? "TRUE":"FALSE"));
+            }
         }
         $this->logger->debug("rename $path1 $path2 ".($ret ? "FAILED":"OK"));
         return $ret;
