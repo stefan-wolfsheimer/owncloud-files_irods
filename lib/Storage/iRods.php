@@ -334,7 +334,6 @@ class iRods extends StorageAdapter
             {
                 $file2 = $this->irodsSession->getNewFile($path2);
                 $ret = $file1->rename($file2);
-                $this->logger->debug("rename $path1 $path2 ".($ret ? "TRUE":"FALSE"));
             }
         }
         else if($file1 instanceof Collection)
@@ -348,7 +347,6 @@ class iRods extends StorageAdapter
             {
                 $file2 = $this->irodsSession->getNewCollection($path2);
                 $ret = $file1->rename($file2);
-                $this->logger->debug("rename $path1 $path2 ".($ret ? "TRUE":"FALSE"));
             }
         }
         $this->logger->debug("rename $path1 $path2 ".($ret ? "FAILED":"OK"));
