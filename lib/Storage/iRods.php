@@ -338,7 +338,7 @@ class iRods extends StorageAdapter
         $irodsPath = $this->resolve($path);
         if($irodsPath === false)
         {
-            $this->logger->fatal("isReadable $path not resolvable");
+            $this->logger->error("isReadable $path not resolvable");
             return false;
         }
         else
@@ -355,7 +355,7 @@ class iRods extends StorageAdapter
         $irodsPath = $this->resolve($path);
         if($irodsPath === false)
         {
-            $this->logger->fatal("isUpdatable $path not resolvable");
+            $this->logger->error("isUpdatable $path not resolvable");
             return false;
         }
         else
@@ -389,7 +389,7 @@ class iRods extends StorageAdapter
         $irodsPath = $this->resolve($path);
         if($irodsPath === false)
         {
-            $this->logger->fatal("isDeletable $path not resolvable");
+            $this->logger->error("isDeletable $path not resolvable");
             return false;
         }
         else
