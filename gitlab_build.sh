@@ -4,6 +4,7 @@ set -e
 
 NAME=owncloud-files_irods
 SPEC=${NAME}.spec
+OC_VERSION=oc-10.3
 
 REGISTRY_PASSWORD=3qSpLTzhaFqUASQy9cZ_
 REGISTRY_USER=registry
@@ -30,16 +31,17 @@ then
      RELEASE=0
      BRANCH=${CI_COMMIT_REF_NAME}
      REPO=DMS-RPM-Testing
+     REPOS=(DMS-RPM-Testing)
 else
      # release
      VERSION=${CI_COMMIT_TAG}
      RELEASE=0
      BRANCH=release
-     REPO=DMS-RPM-Production
+     REPOS=(DMS-RPM-Testing DMS-RPM-Production)
 fi
 
 RPM=${NAME}-${VERSION}-${RELEASE}.noarch.rpm
-TARGET=Centos/7/irods-4.2.x/${BRANCH}/noarch/Packages/${RPM}
+TARGET=Centos/7/$OC_VERSION/${BRANCH}/noarch/Packages/${RPM}
 
 set +e
 docker rm -f $CONTAINER_NAME
@@ -50,10 +52,18 @@ docker run -v $( pwd ):/host --name $CONTAINER_NAME $BUILD_IMG \
        rpmbuild -ba /host/${SPEC} --target noarch --define "version ${VERSION}" --define "release ${RELEASE}" --define "branch $CI_COMMIT_REF_NAME"
 docker cp $CONTAINER_NAME:/home/builder/rpm/noarch/${RPM} .
 
-if [ -z "$ARTIE_KEY" ]
-then
-    echo "no ARTIE_KEY defined: not published"
-    echo curl -H "X-JFrog-Art-Api:$ARTIE_KEY" -XPUT https://artie.ia.surfsara.nl/artifactory/${REPO}/${TARGET} -T ${RPM}
-else
-    curl -H "X-JFrog-Art-Api:$ARTIE_KEY" -XPUT https://artie.ia.surfsara.nl/artifactory/${REPO}/${TARGET} -T ${RPM}
+set +x
+ret=0
+for REPO in ${REPOS[@]}; do
+    if [ -z "$ARTIE_KEY" ]
+    then
+        echo "no ARTIE_KEY defined: not published"
+        echo curl -H "X-JFrog-Art-Api:$ARTIE_KEY" -XPUT https://artie.ia.surfsara.nl/artifactory/${REPO}/${TARGET} -T ${RPM}
+        ret=1
+    else
+        curl -H "X-JFrog-Art-Api:$ARTIE_KEY" -XPUT https://artie.ia.surfsara.nl/artifactory/${REPO}/${TARGET} -T ${RPM}
+    fi
 fi
+
+
+exit $ret
