@@ -63,7 +63,7 @@ for REPO in ${REPOS[@]}; do
     else
         curl -H "X-JFrog-Art-Api:$ARTIE_KEY" -XPUT https://artie.ia.surfsara.nl/artifactory/${REPO}/${TARGET} -T ${RPM}
     fi
-fi
+done
 
 
 exit $ret
