@@ -18,7 +18,7 @@ Vendor:         SURFsara
 Packager:       Stefan Wolfsheimer <stefan.wolfsheimer@surfsara.nl>
 BuildArch:      noarch
 AutoReqProv:    no
-Requires:       owncloud >= 10.0.10
+# Requires:       owncloud >= 10.0.10
 
 %description
 iRODS storage driver for OwnCloud
