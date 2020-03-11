@@ -7,7 +7,7 @@
  *
  */
 namespace OCA\files_irods\iRodsApi;
-require_once("/var/www/lib/irods-php/src/Prods.inc.php");
+require_once("/var/www/lib/irods-php/prods/src/Prods.inc.php");
 
 use OCA\files_irods\iRodsApi\Path;
 use OCA\files_irods\iRodsApi\Collection;
