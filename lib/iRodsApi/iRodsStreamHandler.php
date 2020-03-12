@@ -7,7 +7,8 @@
  *
  */
 namespace OCA\files_irods\iRodsApi;
-require_once("/var/www/lib/irods-php/prods/src/Prods.inc.php");
+require_once("/var/www/lib/irods-php/src/Prods.inc.php");
+
     
 class iRodsStreamHandler {
     var $irods_port;
