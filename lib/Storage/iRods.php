@@ -328,7 +328,13 @@ class iRods extends StorageAdapter
             $file2 = $this->resolve($path2);
             if($file2)
             {
-                $this->logger->error("rename $path1 $path2 already exists");
+                $ret = $file2->unlink();
+                if($ret)
+                {
+                    $ret = !$conn->fileExists($this->path);
+                }
+                $file2 = $this->irodsSession->getNewFile($path2);
+                $ret = $file1->rename($file2);
             }
             else
             {
