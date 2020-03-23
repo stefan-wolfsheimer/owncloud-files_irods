@@ -329,10 +329,6 @@ class iRods extends StorageAdapter
             if($file2)
             {
                 $ret = $file2->unlink();
-                if($ret)
-                {
-                    $ret = !$conn->fileExists($this->path);
-                }
                 $file2 = $this->irodsSession->getNewFile($path2);
                 $ret = $file1->rename($file2);
             }
