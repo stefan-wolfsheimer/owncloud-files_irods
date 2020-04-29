@@ -6,13 +6,10 @@ NAME=owncloud-files_irods
 SPEC=${NAME}.spec
 OC_VERSION=oc-10.3
 
-REGISTRY_PASSWORD=3qSpLTzhaFqUASQy9cZ_
-REGISTRY_USER=registry
-
 BUILD_IMG=git.ia.surfsara.nl:5050/data-management-services/owncloud-app-builder/owncloud-rpm-builder
 CONTAINER_NAME=owncloud-files-irods-builder
 
-echo $REGISTRY_PASSWORD | docker login -u $REGISTRY_USER --password-stdin  git.ia.surfsara.nl:5050/data-management-services/owncloud-app-builder/owncloud-rpm-builder
+echo $OWNCLOUD_APP_BUILDER_PASSWORD | docker login -u $OWNCLOUD_APP_BUILDER_USER --password-stdin  git.ia.surfsara.nl:5050/data-management-services/owncloud-app-builder/owncloud-rpm-builder
 
 
 if [ -z "$CI_PIPELINE_ID" ]
